@@ -43,6 +43,7 @@ export interface Suggestion {
 }
 export type DueStatus = 'paid' | 'due';
 export interface MonthlyDue {
+  id: string; // Composite key: studentId:YYYY-MM
   studentId: string;
   month: string; // YYYY-MM format
   amount: number;

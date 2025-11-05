@@ -10,7 +10,6 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { toast } from "sonner";
 import { api } from "@/lib/api-client";
 import type { WeeklyMenu, DayMenu } from "@shared/types";
-import { useTranslation } from '@/hooks/use-translation';
 const dayMenuSchema = z.object({
   day: z.enum(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']),
   breakfast: z.string().min(1, 'Required'),
@@ -30,7 +29,6 @@ const defaultDays: DayMenu[] = [
     { day: 'Sunday', breakfast: '', lunch: '', dinner: '' },
 ];
 export function MenuManagementPage() {
-  const { t } = useTranslation();
   const form = useForm<z.infer<typeof weeklyMenuSchema>>({
     resolver: zodResolver(weeklyMenuSchema),
     defaultValues: {
@@ -72,13 +70,13 @@ export function MenuManagementPage() {
     <AppLayout>
       <div className="space-y-6">
         <div>
-            <h1 className="text-3xl font-bold font-display">{t('menuManagement_title')}</h1>
-            <p className="text-muted-foreground">{t('menuManagement_description')}</p>
+            <h1 className="text-3xl font-bold font-display">Menu Management</h1>
+            <p className="text-muted-foreground">Set the weekly menu for breakfast, lunch, and dinner.</p>
         </div>
         <Card>
           <CardHeader>
-            <CardTitle>{t('menuManagement_cardTitle')}</CardTitle>
-            <CardDescription>{t('menuManagement_cardDescription')}</CardDescription>
+            <CardTitle>Update Weekly Menu</CardTitle>
+            <CardDescription>Fill in the items for each meal. The changes will be visible to all students immediately.</CardDescription>
           </CardHeader>
           <CardContent>
             <Form {...form}>
@@ -93,7 +91,7 @@ export function MenuManagementPage() {
                           name={`days.${index}.breakfast`}
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>{t('weeklyMenu_breakfast')}</FormLabel>
+                              <FormLabel>Breakfast</FormLabel>
                               <FormControl><Input placeholder="Poha" {...field} /></FormControl>
                               <FormMessage />
                             </FormItem>
@@ -104,7 +102,7 @@ export function MenuManagementPage() {
                           name={`days.${index}.lunch`}
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>{t('weeklyMenu_lunch')}</FormLabel>
+                              <FormLabel>Lunch</FormLabel>
                               <FormControl><Input placeholder="Roti, Sabji, Dal" {...field} /></FormControl>
                               <FormMessage />
                             </FormItem>
@@ -115,7 +113,7 @@ export function MenuManagementPage() {
                           name={`days.${index}.dinner`}
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>{t('weeklyMenu_dinner')}</FormLabel>
+                              <FormLabel>Dinner</FormLabel>
                               <FormControl><Input placeholder="Rice, Curry" {...field} /></FormControl>
                               <FormMessage />
                             </FormItem>
@@ -126,7 +124,7 @@ export function MenuManagementPage() {
                   ))}
                 </div>
                 <Button type="submit" className="bg-orange-500 hover:bg-orange-600" disabled={form.formState.isSubmitting}>
-                  {form.formState.isSubmitting ? t('menuManagement_saving') : t('menuManagement_save')}
+                  {form.formState.isSubmitting ? "Saving..." : "Save Menu"}
                 </Button>
               </form>
             </Form>
