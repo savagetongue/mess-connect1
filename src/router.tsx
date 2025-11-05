@@ -19,6 +19,8 @@ import { MenuManagementPage } from "@/pages/manager/MenuManagementPage";
 import { FeedbackPage } from "@/pages/manager/FeedbackPage";
 import { FinancialsPage } from "@/pages/manager/FinancialsPage";
 import { SettingsPage } from "@/pages/manager/SettingsPage";
+import { BroadcastPage } from "@/pages/manager/BroadcastPage";
+import { NotesPage } from "@/pages/manager/NotesPage";
 // Admin Pages
 import { AdminDashboardPage } from "@/pages/admin/AdminDashboardPage";
 import { AllComplaintsPage } from "@/pages/admin/AllComplaintsPage";
@@ -41,6 +43,8 @@ export const router = createBrowserRouter([
   { path: "/manager/feedback", element: <ProtectedRoute roles={['manager']}><FeedbackPage /></ProtectedRoute>, errorElement: <RouteErrorBoundary /> },
   { path: "/manager/financials", element: <ProtectedRoute roles={['manager']}><FinancialsPage /></ProtectedRoute>, errorElement: <RouteErrorBoundary /> },
   { path: "/manager/settings", element: <ProtectedRoute roles={['manager']}><SettingsPage /></ProtectedRoute>, errorElement: <RouteErrorBoundary /> },
+  { path: "/manager/broadcast", element: <ProtectedRoute roles={['manager']}><BroadcastPage /></ProtectedRoute>, errorElement: <RouteErrorBoundary /> },
+  { path: "/manager/notes", element: <ProtectedRoute roles={['manager']}><NotesPage /></ProtectedRoute>, errorElement: <RouteErrorBoundary /> },
   // Admin Routes
   { path: "/admin", element: <ProtectedRoute roles={['admin']}><AdminDashboardPage /></ProtectedRoute>, errorElement: <RouteErrorBoundary /> },
   { path: "/admin/complaints", element: <ProtectedRoute roles={['admin']}><AllComplaintsPage /></ProtectedRoute>, errorElement: <RouteErrorBoundary /> },

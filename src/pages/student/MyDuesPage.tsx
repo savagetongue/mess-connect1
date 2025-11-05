@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,7 +19,7 @@ export function MyDuesPage() {
   const user = useAuthStore(s => s.user);
   const [dues, setDues] = useState<MonthlyDue[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const fetchDues = async () => {
+  const fetchDues = useCallback(async () => {
     if (!user) return;
     setIsLoading(true);
     try {
@@ -30,10 +30,10 @@ export function MyDuesPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user]);
   useEffect(() => {
     fetchDues();
-  }, [user]);
+  }, [fetchDues]);
   const handlePayNow = async (due: MonthlyDue) => {
     if (!user) {
       toast.error("You must be logged in to pay.");
