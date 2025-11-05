@@ -23,7 +23,7 @@ export function AppLayout({ children, className }: AppLayoutProps): JSX.Element 
     <SidebarProvider>
       <div className="flex min-h-screen bg-background">
         <AppSidebar />
-        <SidebarInset className="flex-1 flex flex-col">
+        <SidebarInset className="flex-1 flex flex-col min-w-0">
           <header className="sticky top-0 z-10 flex h-14 items-center justify-between gap-4 border-b bg-background/80 backdrop-blur-sm px-4 lg:h-[60px] lg:px-6">
             <div className="lg:hidden">
               <SidebarTrigger />
@@ -40,7 +40,7 @@ export function AppLayout({ children, className }: AppLayoutProps): JSX.Element 
               </Button>
             </div>
           </header>
-          <main className={"flex-1 p-4 sm:p-6 lg:p-8" + (className ? ` ${className}` : "")}>
+          <main className={"flex-1 min-w-0 w-full p-4 sm:p-6 lg:p-8" + (className ? ` ${className}` : "")}>
             {children}
           </main>
         </SidebarInset>
