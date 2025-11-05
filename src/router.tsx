@@ -2,6 +2,7 @@ import { createBrowserRouter, Navigate } from "react-router-dom";
 import App from '@/App';
 import { RouteErrorBoundary } from '@/components/RouteErrorBoundary';
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { AppLayout } from "@/components/layout/AppLayout";
 // Public Pages
 import { HomePage } from '@/pages/HomePage';
 import { RegisterPage } from '@/pages/RegisterPage';
@@ -38,24 +39,24 @@ export const router = createBrowserRouter([
       { path: "pending-approval", element: <PendingApprovalPage /> },
       { path: "guest-payment", element: <GuestPaymentPage /> },
       // Student Routes
-      { path: "student", element: <ProtectedRoute roles={['student']}><StudentDashboardPage /></ProtectedRoute> },
-      { path: "student/menu", element: <ProtectedRoute roles={['student']}><WeeklyMenuPage /></ProtectedRoute> },
-      { path: "student/complaints", element: <ProtectedRoute roles={['student']}><ComplaintsPage /></ProtectedRoute> },
-      { path: "student/suggestions", element: <ProtectedRoute roles={['student']}><SuggestionsPage /></ProtectedRoute> },
-      { path: "student/dues", element: <ProtectedRoute roles={['student']}><MyDuesPage /></ProtectedRoute> },
-      { path: "student/rules", element: <ProtectedRoute roles={['student']}><MessRulesPage /></ProtectedRoute> },
+      { path: "student", element: <ProtectedRoute roles={['student']}><AppLayout><StudentDashboardPage /></AppLayout></ProtectedRoute> },
+      { path: "student/menu", element: <ProtectedRoute roles={['student']}><AppLayout><WeeklyMenuPage /></AppLayout></ProtectedRoute> },
+      { path: "student/complaints", element: <ProtectedRoute roles={['student']}><AppLayout><ComplaintsPage /></AppLayout></ProtectedRoute> },
+      { path: "student/suggestions", element: <ProtectedRoute roles={['student']}><AppLayout><SuggestionsPage /></AppLayout></ProtectedRoute> },
+      { path: "student/dues", element: <ProtectedRoute roles={['student']}><AppLayout><MyDuesPage /></AppLayout></ProtectedRoute> },
+      { path: "student/rules", element: <ProtectedRoute roles={['student']}><AppLayout><MessRulesPage /></AppLayout></ProtectedRoute> },
       // Manager Routes
-      { path: "manager", element: <ProtectedRoute roles={['manager']}><ManagerDashboardPage /></ProtectedRoute> },
-      { path: "manager/students", element: <ProtectedRoute roles={['manager']}><StudentManagementPage /></ProtectedRoute> },
-      { path: "manager/menu", element: <ProtectedRoute roles={['manager']}><MenuManagementPage /></ProtectedRoute> },
-      { path: "manager/feedback", element: <ProtectedRoute roles={['manager']}><FeedbackPage /></ProtectedRoute> },
-      { path: "manager/financials", element: <ProtectedRoute roles={['manager']}><FinancialsPage /></ProtectedRoute> },
-      { path: "manager/settings", element: <ProtectedRoute roles={['manager']}><SettingsPage /></ProtectedRoute> },
-      { path: "manager/broadcast", element: <ProtectedRoute roles={['manager']}><BroadcastPage /></ProtectedRoute> },
-      { path: "manager/notes", element: <ProtectedRoute roles={['manager']}><NotesPage /></ProtectedRoute> },
+      { path: "manager", element: <ProtectedRoute roles={['manager']}><AppLayout><ManagerDashboardPage /></AppLayout></ProtectedRoute> },
+      { path: "manager/students", element: <ProtectedRoute roles={['manager']}><AppLayout><StudentManagementPage /></AppLayout></ProtectedRoute> },
+      { path: "manager/menu", element: <ProtectedRoute roles={['manager']}><AppLayout><MenuManagementPage /></AppLayout></ProtectedRoute> },
+      { path: "manager/feedback", element: <ProtectedRoute roles={['manager']}><AppLayout><FeedbackPage /></AppLayout></ProtectedRoute> },
+      { path: "manager/financials", element: <ProtectedRoute roles={['manager']}><AppLayout><FinancialsPage /></AppLayout></ProtectedRoute> },
+      { path: "manager/settings", element: <ProtectedRoute roles={['manager']}><AppLayout><SettingsPage /></AppLayout></ProtectedRoute> },
+      { path: "manager/broadcast", element: <ProtectedRoute roles={['manager']}><AppLayout><BroadcastPage /></AppLayout></ProtectedRoute> },
+      { path: "manager/notes", element: <ProtectedRoute roles={['manager']}><AppLayout><NotesPage /></AppLayout></ProtectedRoute> },
       // Admin Routes
-      { path: "admin", element: <ProtectedRoute roles={['admin']}><AdminDashboardPage /></ProtectedRoute> },
-      { path: "admin/complaints", element: <ProtectedRoute roles={['admin']}><AllComplaintsPage /></ProtectedRoute> },
+      { path: "admin", element: <ProtectedRoute roles={['admin']}><AppLayout><AdminDashboardPage /></AppLayout></ProtectedRoute> },
+      { path: "admin/complaints", element: <ProtectedRoute roles={['admin']}><AppLayout><AllComplaintsPage /></AppLayout></ProtectedRoute> },
       // Fallback redirect
       { path: "*", element: <Navigate to="/" replace /> }
     ]
