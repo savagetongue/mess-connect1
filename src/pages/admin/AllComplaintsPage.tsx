@@ -42,7 +42,7 @@ export function AllComplaintsPage() {
         if (filterStatus === 'pending') return !c.reply;
         return true;
       })
-      .filter(c => 
+      .filter(c =>
         c.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         c.text.toLowerCase().includes(searchTerm.toLowerCase())
       );
@@ -62,9 +62,9 @@ export function AllComplaintsPage() {
                 <CardDescription>{t('allComplaints_logDescription')}</CardDescription>
               </div>
               <div className="flex flex-col sm:flex-row items-center gap-2">
-                <ToggleGroup 
-                  type="single" 
-                  defaultValue="all" 
+                <ToggleGroup
+                  type="single"
+                  defaultValue="all"
                   value={filterStatus}
                   onValueChange={(value: FilterStatus) => value && setFilterStatus(value)}
                   aria-label="Filter by status"
@@ -74,7 +74,7 @@ export function AllComplaintsPage() {
                   <ToggleGroupItem value="replied" aria-label="Replied complaints">{t('complaints_replied')}</ToggleGroupItem>
                 </ToggleGroup>
                 <div className="w-full sm:w-64">
-                  <Input 
+                  <Input
                     placeholder="Search complaints..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -117,9 +117,10 @@ export function AllComplaintsPage() {
                             <div className="space-y-4 py-4">
                                 <p className="text-sm text-muted-foreground whitespace-pre-wrap">{c.text}</p>
                                 {c.imageUrl && (
-                                    <a href={c.imageUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm text-orange-500 hover:underline">
-                                        <ImageIcon className="h-4 w-4" /> {t('complaints_viewImage')}
-                                    </a>
+                                    <div>
+                                        <p className="font-semibold text-sm mb-2">Attached Image:</p>
+                                        <img src={c.imageUrl} alt="Complaint attachment" className="rounded-md max-h-60 w-full object-contain border" />
+                                    </div>
                                 )}
                                 <div className="p-4 bg-muted/50 rounded-lg border">
                                     <p className="font-semibold text-sm">{t('complaints_managerReply')}</p>

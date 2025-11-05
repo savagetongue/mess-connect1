@@ -11,9 +11,11 @@ interface RazorpayOrder {
     amount: number;
     currency: string;
 }
-// A simple placeholder for image uploads. In a real app, use a service like R2.
+// In a real app, use a service like R2. For now, encode as base64.
 const uploadImage = async (file: File): Promise<string> => {
-  return `https://placehold.co/600x400?text=Image+Placeholder\\n${file.size}+bytes`;
+  const arrayBuffer = await file.arrayBuffer();
+  const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+  return `data:${file.type};base64,${base64}`;
 };
 // Basic password hashing simulation
 const hashPassword = async (password: string) => {

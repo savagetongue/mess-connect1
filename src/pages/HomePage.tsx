@@ -120,14 +120,14 @@ export function HomePage() {
         <ThemeToggle className="relative top-0 right-0" />
       </div>
       <Toaster richColors closeButton />
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
         className="w-full max-w-md z-10"
       >
         <div className="text-center mb-8">
-            <motion.div 
+            <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1, rotate: 360 }}
               transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.2 }}
