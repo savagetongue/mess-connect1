@@ -2,10 +2,15 @@ import { Hono } from "hono";
 import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator';
 import type { Env } from './core-utils';
-import { UserEntity, MenuEntity, ComplaintEntity, SuggestionEntity, SettingsEntity, MonthlyDueEntity, GuestPaymentEntity } from "./entities";
+import { UserEntity, MenuEntity, ComplaintEntity, SuggestionEntity, SettingsEntity, MonthlyDueEntity, GuestPaymentEntity, BroadcastEntity, NoteEntity } from "./entities";
 import { ok, bad, notFound } from './core-utils';
-import type { User, WeeklyMenu, Complaint, Suggestion, MessSettings, MonthlyDue, GuestPayment, VerifyPaymentPayload } from "@shared/types";
+import type { User, WeeklyMenu, Complaint, Suggestion, MessSettings, MonthlyDue, GuestPayment, VerifyPaymentPayload, Broadcast, Note } from "@shared/types";
 import { format } from 'date-fns';
+interface RazorpayOrder {
+    id: string;
+    amount: number;
+    currency: string;
+}
 // A simple placeholder for image uploads. In a real app, use a service like R2.
 const uploadImage = async (file: File): Promise<string> => {
   return `https://placehold.co/600x400?text=Image+Placeholder\\n${file.size}+bytes`;
@@ -21,7 +26,7 @@ const verifyPassword = async (password: string, hash: string) => {
     const passwordHash = await hashPassword(password);
     return passwordHash === hash;
 };
-export function userRoutes(app: Hono<{ Bindings: Env & { RAZORPAY_KEY_ID: string; RAZORPAY_KEY_SECRET: string } }>) {
+export function userRoutes(app: Hono<{ Bindings: Env }>) {
   // Middleware to ensure admin and manager exist
   app.use('/api/*', async (c, next) => {
     const adminUser = new UserEntity(c.env, 'admin@messconnect.com');
@@ -216,7 +221,7 @@ export function userRoutes(app: Hono<{ Bindings: Env & { RAZORPAY_KEY_ID: string
             console.error("Razorpay Error:", errorText);
             return bad(c, `Failed to create Razorpay order: ${errorText}`);
         }
-        const order = await response.json();
+        const order = await response.json<RazorpayOrder>();
         return ok(c, { orderId: order.id, amount: order.amount, currency: order.currency });
     } catch (error) {
         console.error("Create Order Error:", error);
@@ -254,6 +259,44 @@ export function userRoutes(app: Hono<{ Bindings: Env & { RAZORPAY_KEY_ID: string
     } else {
         return bad(c, 'Payment verification failed.');
     }
+  });
+  // --- MANAGER'S TOOLKIT ---
+  const broadcastSchema = z.object({ message: z.string().min(5) });
+  app.post('/api/broadcasts', zValidator('json', broadcastSchema), async (c) => {
+    const { message } = c.req.valid('json');
+    const newBroadcast: Broadcast = { id: crypto.randomUUID(), message, createdAt: Date.now() };
+    await BroadcastEntity.create(c.env, newBroadcast);
+    return ok(c, newBroadcast);
+  });
+  app.get('/api/broadcasts', async (c) => {
+    const { items } = await BroadcastEntity.list(c.env);
+    return ok(c, { broadcasts: items.sort((a, b) => b.createdAt - a.createdAt) });
+  });
+  app.get('/api/notes', async (c) => {
+    const { items } = await NoteEntity.list(c.env);
+    return ok(c, { notes: items });
+  });
+  const noteSchema = z.object({ text: z.string().min(1) });
+  app.post('/api/notes', zValidator('json', noteSchema), async (c) => {
+    const { text } = c.req.valid('json');
+    const newNote: Note = { id: crypto.randomUUID(), text, completed: false };
+    await NoteEntity.create(c.env, newNote);
+    return ok(c, newNote);
+  });
+  const noteUpdateSchema = z.object({ completed: z.boolean() });
+  app.patch('/api/notes/:id', zValidator('json', noteUpdateSchema), async (c) => {
+    const id = c.req.param('id');
+    const { completed } = c.req.valid('json');
+    const noteEntity = new NoteEntity(c.env, id);
+    if (!await noteEntity.exists()) return notFound(c, 'Note not found.');
+    await noteEntity.patch({ completed });
+    return ok(c, await noteEntity.getState());
+  });
+  app.delete('/api/notes/:id', async (c) => {
+    const id = c.req.param('id');
+    const deleted = await NoteEntity.delete(c.env, id);
+    if (!deleted) return notFound(c, 'Note not found.');
+    return ok(c, { message: 'Note deleted.' });
   });
 }
 // Helper to get week number

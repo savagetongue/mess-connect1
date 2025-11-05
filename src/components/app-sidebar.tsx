@@ -1,6 +1,6 @@
 import React from "react";
 import {
-  Home, User, Settings, Utensils, Wallet, MessageSquare, Lightbulb, Shield, FileText
+  Home, User, Settings, Utensils, Wallet, MessageSquare, Lightbulb, Shield, FileText, Send, StickyNote
 } from "lucide-react";
 import {
   Sidebar,
@@ -25,8 +25,8 @@ const managerNav = [
   { href: "/manager/menu", label: "Update Menu", icon: Utensils },
   { href: "/manager/financials", label: "Financials", icon: Wallet },
   { href: "/manager/feedback", label: "Feedback", icon: MessageSquare },
-  // { href: "/manager/broadcast", label: "Broadcast", icon: Send },
-  // { href: "/manager/notes", label: "Notes", icon: StickyNote },
+  { href: "/manager/broadcast", label: "Broadcast", icon: Send },
+  { href: "/manager/notes", label: "Notes", icon: StickyNote },
   { href: "/manager/settings", label: "Settings", icon: Settings },
 ];
 const adminNav = [
