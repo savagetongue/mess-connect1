@@ -14,7 +14,13 @@ interface RazorpayOrder {
 // In a real app, use a service like R2. For now, encode as base64.
 const uploadImage = async (file: File): Promise<string> => {
   const arrayBuffer = await file.arrayBuffer();
-  const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+  const bytes = new Uint8Array(arrayBuffer);
+  let binary = '';
+  const len = bytes.byteLength;
+  for (let i = 0; i < len; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  const base64 = btoa(binary);
   return `data:${file.type};base64,${base64}`;
 };
 // Basic password hashing simulation
