@@ -5,10 +5,12 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { Toaster, toast } from '@/components/ui/sonner'
-import type { User, Chat, ChatMessage } from '@shared/types'
+import type { User } from '@shared/types' // Removed Chat, ChatMessage
 import { api } from '@/lib/api-client'
 import { AppLayout } from '@/components/layout/AppLayout'
-
+// Mock types for demo purposes since they were removed from shared/types.ts
+type Chat = { id: string; title: string };
+type ChatMessage = { id: string; chatId: string; userId: string; text: string; ts: number };
 export function DemoPage() {
   // Minimal state — small demo for AI to extend
   const [users, updateUsers] = useState<User[]>([])
@@ -19,83 +21,73 @@ export function DemoPage() {
   const [name, updateName] = useState('')
   const [title, updateTitle] = useState('')
   const [text, updateText] = useState('')
-
   const usersById = useMemo(() => new Map(users.map(u => [u.id, u])), [users])
-
   const loadBasics = useCallback(async () => {
-    const [uPage, cPage] = await Promise.all([
-      api<{ items: User[]; next: string | null }>('/api/users'),
-      api<{ items: Chat[]; next: string | null }>('/api/chats'),
-    ])
-    updateUsers(uPage.items)
-    updateChats(cPage.items)
+    // Demo uses a different user structure, we'll just mock it for now
+    // In a real scenario, you'd adapt this to your new User type
+    const mockUsers: User[] = [
+        { id: 'demo-user-1', name: 'Demo User', phone: '', passwordHash: '', role: 'student', status: 'approved' }
+    ];
+    const mockChats: Chat[] = [{ id: 'demo-chat-1', title: 'General' }];
+    updateUsers(mockUsers);
+    updateChats(mockChats);
   }, [])
-
   const loadMessages = useCallback(async (chatId: string) => {
-    const m = await api<ChatMessage[]>(`/api/chats/${chatId}/messages`)
-    updateMessages(m)
+    // Mocking messages
+    const mockMessages: ChatMessage[] = [
+        { id: 'm1', chatId, userId: 'demo-user-1', text: 'Hello from the demo!', ts: Date.now() }
+    ];
+    updateMessages(mockMessages)
   }, [])
-
   useEffect(() => {
     loadBasics().catch(err => toast.error(err.message))
   }, [loadBasics])
-
   // Select first user/chat once data arrives
   useEffect(() => {
     if (!selectedUserId && users.length) chooseUserId(users[0].id)
   }, [users, selectedUserId])
-
   useEffect(() => {
     if (!selectedChatId && chats.length) chooseChatId(chats[0].id)
   }, [chats, selectedChatId])
-
   useEffect(() => {
     if (selectedChatId) loadMessages(selectedChatId).catch(err => toast.error(err.message))
   }, [selectedChatId, loadMessages])
-
   const createUser = useCallback(async () => {
     if (!name.trim()) return
-    const u = await api<User>('/api/users', { method: 'POST', body: JSON.stringify({ name: name.trim() }) })
+    const u: User = { id: `demo-user-${Date.now()}`, name: name.trim(), phone: '', passwordHash: '', role: 'student', status: 'approved' };
     updateUsers(prev => [...prev, u])
     updateName('')
-    toast.success('User created')
+    toast.success('Demo user created')
     if (!selectedUserId) chooseUserId(u.id)
   }, [name, selectedUserId])
-
   const createChat = useCallback(async () => {
     if (!title.trim()) return
-    const c = await api<Chat>('/api/chats', { method: 'POST', body: JSON.stringify({ title: title.trim() }) })
+    const c: Chat = { id: `demo-chat-${Date.now()}`, title: title.trim() };
     updateChats(prev => [...prev, c])
     updateTitle('')
-    toast.success('Chat created')
+    toast.success('Demo chat created')
     if (!selectedChatId) chooseChatId(c.id)
   }, [title, selectedChatId])
-
   const send = useCallback(async () => {
     if (!selectedUserId || !selectedChatId || !text.trim()) return
-    const m = await api<ChatMessage>(`/api/chats/${selectedChatId}/messages`, { method: 'POST', body: JSON.stringify({ userId: selectedUserId, text: text.trim() }) })
+    const m: ChatMessage = { id: `m-${Date.now()}`, chatId: selectedChatId, userId: selectedUserId, text: text.trim(), ts: Date.now() };
     updateMessages(prev => [...prev, m])
     updateText('')
   }, [selectedUserId, selectedChatId, text])
-
   return (
     <AppLayout>
     <main className="min-h-screen flex flex-col items-center justify-center bg-background text-foreground p-4 overflow-hidden relative">
       <ThemeToggle />
-
       <div className="absolute inset-0 bg-gradient-rainbow opacity-10 dark:opacity-20" />
-      
       <div className="space-y-6 relative z-10 max-w-3xl w-full">
         <div className="flex justify-center">
           <div className="w-16 h-16 rounded-2xl bg-gradient-primary flex items-center justify-center shadow-primary floating">
             <Sparkles className="w-8 h-8 text-white rotating" />
           </div>
         </div>
-
         <h1 className="text-4xl md:text-5xl font-display font-bold text-center">
           Minimal Users + Chats Demo
         </h1>
-
         {/* Quick create controls */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div className="flex gap-2">
@@ -107,7 +99,6 @@ export function DemoPage() {
             <Button onClick={createChat}>Add Chat</Button>
           </div>
         </div>
-
         {/* Pick user and chat */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div className="flex items-center gap-2">
@@ -129,7 +120,6 @@ export function DemoPage() {
             </select>
           </div>
         </div>
-
         {/* Messages */}
         <div className="border rounded p-3 h-64 overflow-y-auto bg-muted/30">
           {selectedChatId ? (
@@ -147,18 +137,15 @@ export function DemoPage() {
             <div className="text-sm text-muted-foreground">Select a chat to view messages.</div>
           )}
         </div>
-
         {/* Compose */}
         <div className="flex gap-2">
           <Textarea placeholder="Type a message" value={text} onChange={(e) => updateText(e.target.value)} disabled={!selectedUserId || !selectedChatId} />
           <Button onClick={() => send().catch(err => toast.error(err.message))} disabled={!selectedUserId || !selectedChatId || !text.trim()}>Send</Button>
         </div>
       </div>
-
       <footer className="mt-8 text-center text-muted-foreground/80">
-        <p>Powered by Cloudflare</p>
+        <p>Built with ❤️ at Cloudflare</p>
       </footer>
-
       <Toaster richColors closeButton />
     </main>
     </AppLayout>

@@ -15,7 +15,6 @@ export class UserEntity extends IndexedEntity<User> {
   static readonly entityName = "user";
   static readonly indexName = "users";
   static readonly initialState: User = { id: "", name: "", phone: "", passwordHash: "", role: 'student', status: 'pending' };
-  static keyOf(state: User): string { return state.id; } // Use email as ID
 }
 // MENU ENTITY (Singleton for now)
 export class MenuEntity extends IndexedEntity<WeeklyMenu> {
@@ -39,8 +38,7 @@ export class SuggestionEntity extends IndexedEntity<Suggestion> {
 export class MonthlyDueEntity extends IndexedEntity<MonthlyDue> {
   static readonly entityName = "monthlyDue";
   static readonly indexName = "monthlyDues";
-  static readonly initialState: MonthlyDue = { studentId: "", month: "", amount: 0, status: 'due' };
-  static keyOf(state: MonthlyDue): string { return `${state.studentId}:${state.month}`; }
+  static readonly initialState: MonthlyDue = { id: "", studentId: "", month: "", amount: 0, status: 'due' };
 }
 // GUEST PAYMENT ENTITY
 export class GuestPaymentEntity extends IndexedEntity<GuestPayment> {

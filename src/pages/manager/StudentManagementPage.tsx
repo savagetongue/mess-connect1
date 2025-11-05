@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,17 +6,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { api } from "@/lib/api-client";
-import type { User, UserStatus } from "@shared/types";
+import type { User } from "@shared/types";
 import { Badge } from '@/components/ui/badge';
-import { useTranslation } from '@/hooks/use-translation';
-import { Input } from '@/components/ui/input';
-import { Search } from 'lucide-react';
 export function StudentManagementPage() {
-  const { t } = useTranslation();
   const [students, setStudents] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [activeTab, setActiveTab] = useState<UserStatus | 'all'>('pending');
   const fetchStudents = async () => {
     setIsLoading(true);
     try {
@@ -47,74 +41,55 @@ export function StudentManagementPage() {
       });
     }
   };
-  const filteredStudents = useMemo(() => {
-    return students
-      .filter(student => {
-        if (activeTab === 'all') return true;
-        return student.status === activeTab;
-      })
-      .filter(student =>
-        student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        student.id.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-  }, [students, searchTerm, activeTab]);
-  const pendingCount = useMemo(() => students.filter(s => s.status === 'pending').length, [students]);
+  const pendingStudents = students.filter(s => s.status === 'pending');
+  const approvedStudents = students.filter(s => s.status === 'approved');
+  const rejectedStudents = students.filter(s => s.status === 'rejected');
   return (
     <AppLayout>
       <div className="space-y-6">
         <div>
-            <h1 className="text-3xl font-bold font-display">{t('studentManagement_title')}</h1>
-            <p className="text-muted-foreground">{t('studentManagement_description')}</p>
+            <h1 className="text-3xl font-bold font-display">Student Management</h1>
+            <p className="text-muted-foreground">Approve new student applications and view all registered students.</p>
         </div>
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as UserStatus | 'all')}>
-          <div className="flex justify-between items-center mb-4">
-            <TabsList>
-              <TabsTrigger value="pending">{t('studentManagement_pending')} <Badge className="ml-2">{pendingCount}</Badge></TabsTrigger>
-              <TabsTrigger value="approved">{t('studentManagement_approved')}</TabsTrigger>
-              <TabsTrigger value="rejected">{t('studentManagement_rejected')}</TabsTrigger>
-            </TabsList>
-            <div className="w-full max-w-sm">
-              <Input
-                placeholder="Search by name or email..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                icon={<Search className="h-4 w-4" />}
-              />
-            </div>
-          </div>
+        <Tabs defaultValue="pending">
+          <TabsList>
+            <TabsTrigger value="pending">Pending <Badge className="ml-2">{pendingStudents.length}</Badge></TabsTrigger>
+            <TabsTrigger value="approved">Approved</TabsTrigger>
+            <TabsTrigger value="rejected">Rejected</TabsTrigger>
+          </TabsList>
           <TabsContent value="pending">
             <Card>
               <CardHeader>
-                <CardTitle>{t('studentManagement_pendingTitle')}</CardTitle>
-                <CardDescription>{t('studentManagement_pendingDescription')}</CardDescription>
+                <CardTitle>Pending Applications</CardTitle>
+                <CardDescription>Review and act on new student registrations.</CardDescription>
               </CardHeader>
               <CardContent>
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>{t('studentManagement_name')}</TableHead>
-                      <TableHead>{t('studentManagement_email')}</TableHead>
-                      <TableHead>{t('studentManagement_phone')}</TableHead>
-                      <TableHead className="text-right">{t('studentManagement_actions')}</TableHead>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Phone</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {isLoading ? (
-                        <TableRow><TableCell colSpan={4} className="text-center h-24">Loading...</TableCell></TableRow>
-                    ) : filteredStudents.length > 0 ? (
-                      filteredStudents.map((student) => (
+                        <TableRow><TableCell colSpan={4} className="text-center">Loading...</TableCell></TableRow>
+                    ) : pendingStudents.length > 0 ? (
+                      pendingStudents.map((student) => (
                         <TableRow key={student.id}>
                           <TableCell>{student.name}</TableCell>
                           <TableCell>{student.id}</TableCell>
                           <TableCell>{student.phone}</TableCell>
                           <TableCell className="text-right space-x-2">
-                            <Button size="sm" variant="outline" className="text-green-600 border-green-600 hover:bg-green-50 hover:text-green-700" onClick={() => handleUpdateStatus(student.id, 'approved')}>{t('studentManagement_approve')}</Button>
-                            <Button size="sm" variant="outline" className="text-red-600 border-red-600 hover:bg-red-50 hover:text-red-700" onClick={() => handleUpdateStatus(student.id, 'rejected')}>{t('studentManagement_reject')}</Button>
+                            <Button size="sm" variant="outline" className="text-green-600 border-green-600 hover:bg-green-50 hover:text-green-700" onClick={() => handleUpdateStatus(student.id, 'approved')}>Approve</Button>
+                            <Button size="sm" variant="outline" className="text-red-600 border-red-600 hover:bg-red-50 hover:text-red-700" onClick={() => handleUpdateStatus(student.id, 'rejected')}>Reject</Button>
                           </TableCell>
                         </TableRow>
                       ))
                     ) : (
-                      <TableRow><TableCell colSpan={4} className="text-center h-24">{t('studentManagement_noPending')}</TableCell></TableRow>
+                      <TableRow><TableCell colSpan={4} className="text-center">No pending applications.</TableCell></TableRow>
                     )}
                   </TableBody>
                 </Table>
@@ -124,23 +99,23 @@ export function StudentManagementPage() {
           <TabsContent value="approved">
             <Card>
               <CardHeader>
-                <CardTitle>{t('studentManagement_approvedTitle')}</CardTitle>
-                <CardDescription>{t('studentManagement_approvedDescription')}</CardDescription>
+                <CardTitle>Approved Students</CardTitle>
+                <CardDescription>List of all active students in the mess.</CardDescription>
               </CardHeader>
               <CardContent>
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>{t('studentManagement_name')}</TableHead>
-                      <TableHead>{t('studentManagement_email')}</TableHead>
-                      <TableHead>{t('studentManagement_phone')}</TableHead>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Phone</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {isLoading ? (
-                        <TableRow><TableCell colSpan={3} className="text-center h-24">Loading...</TableCell></TableRow>
-                    ) : filteredStudents.length > 0 ? (
-                      filteredStudents.map((student) => (
+                        <TableRow><TableCell colSpan={3} className="text-center">Loading...</TableCell></TableRow>
+                    ) : approvedStudents.length > 0 ? (
+                      approvedStudents.map((student) => (
                         <TableRow key={student.id}>
                           <TableCell>{student.name}</TableCell>
                           <TableCell>{student.id}</TableCell>
@@ -148,7 +123,7 @@ export function StudentManagementPage() {
                         </TableRow>
                       ))
                     ) : (
-                      <TableRow><TableCell colSpan={3} className="text-center h-24">{t('studentManagement_noApproved')}</TableCell></TableRow>
+                      <TableRow><TableCell colSpan={3} className="text-center">No approved students.</TableCell></TableRow>
                     )}
                   </TableBody>
                 </Table>
@@ -158,23 +133,23 @@ export function StudentManagementPage() {
           <TabsContent value="rejected">
             <Card>
               <CardHeader>
-                <CardTitle>{t('studentManagement_rejectedTitle')}</CardTitle>
-                <CardDescription>{t('studentManagement_rejectedDescription')}</CardDescription>
+                <CardTitle>Rejected Applications</CardTitle>
+                <CardDescription>List of all rejected student applications.</CardDescription>
               </CardHeader>
               <CardContent>
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>{t('studentManagement_name')}</TableHead>
-                      <TableHead>{t('studentManagement_email')}</TableHead>
-                      <TableHead>{t('studentManagement_phone')}</TableHead>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Phone</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {isLoading ? (
-                        <TableRow><TableCell colSpan={3} className="text-center h-24">Loading...</TableCell></TableRow>
-                    ) : filteredStudents.length > 0 ? (
-                      filteredStudents.map((student) => (
+                        <TableRow><TableCell colSpan={3} className="text-center">Loading...</TableCell></TableRow>
+                    ) : rejectedStudents.length > 0 ? (
+                      rejectedStudents.map((student) => (
                         <TableRow key={student.id}>
                           <TableCell>{student.name}</TableCell>
                           <TableCell>{student.id}</TableCell>
@@ -182,7 +157,7 @@ export function StudentManagementPage() {
                         </TableRow>
                       ))
                     ) : (
-                      <TableRow><TableCell colSpan={3} className="text-center h-24">{t('studentManagement_noRejected')}</TableCell></TableRow>
+                      <TableRow><TableCell colSpan={3} className="text-center">No rejected applications.</TableCell></TableRow>
                     )}
                   </TableBody>
                 </Table>
