@@ -6,6 +6,7 @@ import { createRoot } from 'react-dom/client'
 import { RouterProvider } from "react-router-dom";
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import '@/index.css'
+import '@/App.css'
 import { router } from '@/router';
 import '@/lib/i18n'; // Initialize i18next
 import { Skeleton } from './components/ui/skeleton';
