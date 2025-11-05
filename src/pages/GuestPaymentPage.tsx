@@ -10,7 +10,7 @@ import { Toaster, toast } from '@/components/ui/sonner';
 import { api } from '@/lib/api-client';
 import { Utensils } from 'lucide-react';
 import type { CreateOrderResponse } from '@shared/types';
-import { useTranslation } from '@/context/I18nContext';
+import { useTranslation } from '@/hooks/use-translation';
 declare global {
   interface Window {
     Razorpay: any;

@@ -9,7 +9,7 @@ import { api } from "@/lib/api-client";
 import type { MonthlyDue, GuestPayment, User } from "@shared/types";
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
-import { useTranslation } from '@/context/I18nContext';
+import { useTranslation } from '@/hooks/use-translation';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
 export function FinancialsPage() {
@@ -83,7 +83,7 @@ export function FinancialsPage() {
                     <CardDescription>{t('financials_duesDescription')}</CardDescription>
                   </div>
                   <div className="w-full max-w-sm">
-                    <Input 
+                    <Input
                       placeholder="Search by student name..."
                       value={duesSearch}
                       onChange={(e) => setDuesSearch(e.target.value)}
@@ -143,7 +143,7 @@ export function FinancialsPage() {
                     <CardDescription>{t('financials_guestsDescription')}</CardDescription>
                   </div>
                   <div className="w-full max-w-sm">
-                    <Input 
+                    <Input
                       placeholder="Search by guest name..."
                       value={guestsSearch}
                       onChange={(e) => setGuestsSearch(e.target.value)}

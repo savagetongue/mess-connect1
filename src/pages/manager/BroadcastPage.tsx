@@ -12,7 +12,7 @@ import { api } from "@/lib/api-client";
 import type { Broadcast } from "@shared/types";
 import { format } from 'date-fns';
 import { Send } from 'lucide-react';
-import { useTranslation } from '@/context/I18nContext';
+import { useTranslation } from '@/hooks/use-translation';
 const broadcastSchema = z.object({
   message: z.string().min(10, 'Broadcast message must be at least 10 characters long.'),
 });

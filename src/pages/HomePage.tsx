@@ -14,7 +14,7 @@ import { useAuthStore } from '@/store/auth';
 import type { User, UserRole } from '@shared/types';
 import { Utensils } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { useTranslation } from '@/context/I18nContext';
+import { useTranslation } from '@/hooks/use-translation';
 import { LanguageToggle } from '@/components/LanguageToggle';
 import { motion } from 'framer-motion';
 const loginSchema = z.object({

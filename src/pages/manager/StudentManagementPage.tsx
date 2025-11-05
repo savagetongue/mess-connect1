@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { api } from "@/lib/api-client";
 import type { User, UserStatus } from "@shared/types";
 import { Badge } from '@/components/ui/badge';
-import { useTranslation } from '@/context/I18nContext';
+import { useTranslation } from '@/hooks/use-translation';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
 export function StudentManagementPage() {
@@ -53,7 +53,7 @@ export function StudentManagementPage() {
         if (activeTab === 'all') return true;
         return student.status === activeTab;
       })
-      .filter(student => 
+      .filter(student =>
         student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         student.id.toLowerCase().includes(searchTerm.toLowerCase())
       );
@@ -74,7 +74,7 @@ export function StudentManagementPage() {
               <TabsTrigger value="rejected">{t('studentManagement_rejected')}</TabsTrigger>
             </TabsList>
             <div className="w-full max-w-sm">
-              <Input 
+              <Input
                 placeholder="Search by name or email..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
