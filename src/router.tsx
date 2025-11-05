@@ -1,55 +1,67 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import { RouteErrorBoundary } from '@/components/RouteErrorBoundary';
-import { ProtectedRoute } from "@/components/ProtectedRoute";
-// Public Pages
+// Pages
 import { HomePage } from '@/pages/HomePage';
 import { RegisterPage } from '@/pages/RegisterPage';
 import { PendingApprovalPage } from '@/pages/PendingApprovalPage';
 import { GuestPaymentPage } from '@/pages/GuestPaymentPage';
-// Student Pages
-import { StudentDashboardPage } from "@/pages/student/StudentDashboardPage";
-import { WeeklyMenuPage } from "@/pages/student/WeeklyMenuPage";
-import { ComplaintsPage } from "@/pages/student/ComplaintsPage";
-import { SuggestionsPage } from "@/pages/student/SuggestionsPage";
-import { MyDuesPage } from "@/pages/student/MyDuesPage";
-import { MessRulesPage } from "@/pages/student/MessRulesPage";
-// Manager Pages
-import { ManagerDashboardPage } from "@/pages/manager/ManagerDashboardPage";
-import { StudentManagementPage } from "@/pages/manager/StudentManagementPage";
-import { MenuManagementPage } from "@/pages/manager/MenuManagementPage";
-import { FeedbackPage } from "@/pages/manager/FeedbackPage";
-import { FinancialsPage } from "@/pages/manager/FinancialsPage";
-import { SettingsPage } from "@/pages/manager/SettingsPage";
-import { BroadcastPage } from "@/pages/manager/BroadcastPage";
-import { NotesPage } from "@/pages/manager/NotesPage";
-// Admin Pages
-import { AdminDashboardPage } from "@/pages/admin/AdminDashboardPage";
-import { AllComplaintsPage } from "@/pages/admin/AllComplaintsPage";
+// Layout
+import { AppLayout } from "@/components/layout/AppLayout";
+// Dashboard Placeholders
+const StudentDashboard = () => <AppLayout><div>Student Dashboard</div></AppLayout>;
+const ManagerDashboard = () => <AppLayout><div>Manager Dashboard</div></AppLayout>;
+const AdminDashboard = () => <AppLayout><div>Admin Dashboard</div></AppLayout>;
+// This is a placeholder for a real protected route component
+import { useAuthStore } from "./store/auth";
+import React from "react";
+const ProtectedRoute: React.FC<{ children: React.ReactElement; roles: string[] }> = ({ children, roles }) => {
+    const user = useAuthStore(s => s.user);
+    const isAuthenticated = useAuthStore(s => s.isAuthenticated);
+    if (!isAuthenticated) {
+        return <Navigate to="/" replace />;
+    }
+    if (user?.status === 'pending' && user.role === 'student') {
+        return <Navigate to="/pending-approval" replace />;
+    }
+    if (roles.length > 0 && !roles.includes(user?.role || '')) {
+        return <Navigate to="/" replace />;
+    }
+    return children;
+};
 export const router = createBrowserRouter([
-  // Public Routes
-  { path: "/", element: <HomePage />, errorElement: <RouteErrorBoundary /> },
-  { path: "/register", element: <RegisterPage />, errorElement: <RouteErrorBoundary /> },
-  { path: "/pending-approval", element: <PendingApprovalPage />, errorElement: <RouteErrorBoundary /> },
-  { path: "/guest-payment", element: <GuestPaymentPage />, errorElement: <RouteErrorBoundary /> },
-  // Student Routes
-  { path: "/student", element: <ProtectedRoute roles={['student']}><StudentDashboardPage /></ProtectedRoute>, errorElement: <RouteErrorBoundary /> },
-  { path: "/student/menu", element: <ProtectedRoute roles={['student']}><WeeklyMenuPage /></ProtectedRoute>, errorElement: <RouteErrorBoundary /> },
-  { path: "/student/complaints", element: <ProtectedRoute roles={['student']}><ComplaintsPage /></ProtectedRoute>, errorElement: <RouteErrorBoundary /> },
-  { path: "/student/suggestions", element: <ProtectedRoute roles={['student']}><SuggestionsPage /></ProtectedRoute>, errorElement: <RouteErrorBoundary /> },
-  { path: "/student/dues", element: <ProtectedRoute roles={['student']}><MyDuesPage /></ProtectedRoute>, errorElement: <RouteErrorBoundary /> },
-  { path: "/student/rules", element: <ProtectedRoute roles={['student']}><MessRulesPage /></ProtectedRoute>, errorElement: <RouteErrorBoundary /> },
-  // Manager Routes
-  { path: "/manager", element: <ProtectedRoute roles={['manager']}><ManagerDashboardPage /></ProtectedRoute>, errorElement: <RouteErrorBoundary /> },
-  { path: "/manager/students", element: <ProtectedRoute roles={['manager']}><StudentManagementPage /></ProtectedRoute>, errorElement: <RouteErrorBoundary /> },
-  { path: "/manager/menu", element: <ProtectedRoute roles={['manager']}><MenuManagementPage /></ProtectedRoute>, errorElement: <RouteErrorBoundary /> },
-  { path: "/manager/feedback", element: <ProtectedRoute roles={['manager']}><FeedbackPage /></ProtectedRoute>, errorElement: <RouteErrorBoundary /> },
-  { path: "/manager/financials", element: <ProtectedRoute roles={['manager']}><FinancialsPage /></ProtectedRoute>, errorElement: <RouteErrorBoundary /> },
-  { path: "/manager/settings", element: <ProtectedRoute roles={['manager']}><SettingsPage /></ProtectedRoute>, errorElement: <RouteErrorBoundary /> },
-  { path: "/manager/broadcast", element: <ProtectedRoute roles={['manager']}><BroadcastPage /></ProtectedRoute>, errorElement: <RouteErrorBoundary /> },
-  { path: "/manager/notes", element: <ProtectedRoute roles={['manager']}><NotesPage /></ProtectedRoute>, errorElement: <RouteErrorBoundary /> },
-  // Admin Routes
-  { path: "/admin", element: <ProtectedRoute roles={['admin']}><AdminDashboardPage /></ProtectedRoute>, errorElement: <RouteErrorBoundary /> },
-  { path: "/admin/complaints", element: <ProtectedRoute roles={['admin']}><AllComplaintsPage /></ProtectedRoute>, errorElement: <RouteErrorBoundary /> },
-  // Fallback redirect
-  { path: "*", element: <Navigate to="/" replace /> }
+  {
+    path: "/",
+    element: <HomePage />,
+    errorElement: <RouteErrorBoundary />,
+  },
+  {
+    path: "/register",
+    element: <RegisterPage />,
+    errorElement: <RouteErrorBoundary />,
+  },
+  {
+    path: "/pending-approval",
+    element: <PendingApprovalPage />,
+    errorElement: <RouteErrorBoundary />,
+  },
+  {
+    path: "/guest-payment",
+    element: <GuestPaymentPage />,
+    errorElement: <RouteErrorBoundary />,
+  },
+  {
+    path: "/student",
+    element: <ProtectedRoute roles={['student']}><StudentDashboard /></ProtectedRoute>,
+    errorElement: <RouteErrorBoundary />,
+  },
+  {
+    path: "/manager",
+    element: <ProtectedRoute roles={['manager']}><ManagerDashboard /></ProtectedRoute>,
+    errorElement: <RouteErrorBoundary />,
+  },
+  {
+    path: "/admin",
+    element: <ProtectedRoute roles={['admin']}><AdminDashboard /></ProtectedRoute>,
+    errorElement: <RouteErrorBoundary />,
+  },
 ]);
