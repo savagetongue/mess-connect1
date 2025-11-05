@@ -18,6 +18,7 @@ const studentNav = [
   { href: "/student/dues", label: "My Dues", icon: Wallet },
   { href: "/student/complaints", label: "Complaints", icon: MessageSquare },
   { href: "/student/suggestions", label: "Suggestions", icon: Lightbulb },
+  { href: "/student/rules", label: "Mess Rules", icon: FileText },
 ];
 const managerNav = [
   { href: "/manager", label: "Dashboard", icon: Home },

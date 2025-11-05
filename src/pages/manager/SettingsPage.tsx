@@ -6,23 +6,25 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { toast } from "sonner";
 import { api } from "@/lib/api-client";
 import type { MessSettings } from "@shared/types";
 const settingsSchema = z.object({
   monthlyFee: z.number().min(0, 'Fee must be a positive number.'),
+  rules: z.string().optional(),
 });
 export function SettingsPage() {
   const form = useForm<z.infer<typeof settingsSchema>>({
     resolver: zodResolver(settingsSchema),
-    defaultValues: { monthlyFee: 0 },
+    defaultValues: { monthlyFee: 0, rules: '' },
   });
   useEffect(() => {
     const fetchSettings = async () => {
       try {
         const settings = await api<MessSettings>('/api/settings');
-        form.reset({ monthlyFee: settings.monthlyFee });
+        form.reset({ monthlyFee: settings.monthlyFee, rules: settings.rules || '' });
       } catch (error) {
         console.warn("Could not fetch settings, using defaults.");
       }
@@ -51,12 +53,12 @@ export function SettingsPage() {
         </div>
         <Card>
           <CardHeader>
-            <CardTitle>Financial Settings</CardTitle>
-            <CardDescription>Set the default monthly fee for all students.</CardDescription>
+            <CardTitle>General Settings</CardTitle>
+            <CardDescription>Set the default monthly fee and mess rules for all students.</CardDescription>
           </CardHeader>
           <CardContent>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 max-w-sm">
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 max-w-2xl">
                 <FormField
                   control={form.control}
                   name="monthlyFee"
@@ -64,11 +66,29 @@ export function SettingsPage() {
                     <FormItem>
                       <FormLabel>Monthly Mess Fee (₹)</FormLabel>
                       <FormControl>
-                        <Input 
-                          type="number" 
-                          placeholder="e.g., 3000" 
-                          {...field} 
+                        <Input
+                          type="number"
+                          placeholder="e.g., 3000"
+                          {...field}
                           onChange={e => field.onChange(e.target.valueAsNumber)}
+                          className="max-w-sm"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="rules"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Mess Rules</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Enter mess rules here. Each rule on a new line."
+                          {...field}
+                          rows={10}
                         />
                       </FormControl>
                       <FormMessage />

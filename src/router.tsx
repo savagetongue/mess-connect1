@@ -12,6 +12,7 @@ import { WeeklyMenuPage } from "@/pages/student/WeeklyMenuPage";
 import { ComplaintsPage } from "@/pages/student/ComplaintsPage";
 import { SuggestionsPage } from "@/pages/student/SuggestionsPage";
 import { MyDuesPage } from "@/pages/student/MyDuesPage";
+import { MessRulesPage } from "@/pages/student/MessRulesPage";
 // Manager Pages
 import { ManagerDashboardPage } from "@/pages/manager/ManagerDashboardPage";
 import { StudentManagementPage } from "@/pages/manager/StudentManagementPage";
@@ -36,6 +37,7 @@ export const router = createBrowserRouter([
   { path: "/student/complaints", element: <ProtectedRoute roles={['student']}><ComplaintsPage /></ProtectedRoute>, errorElement: <RouteErrorBoundary /> },
   { path: "/student/suggestions", element: <ProtectedRoute roles={['student']}><SuggestionsPage /></ProtectedRoute>, errorElement: <RouteErrorBoundary /> },
   { path: "/student/dues", element: <ProtectedRoute roles={['student']}><MyDuesPage /></ProtectedRoute>, errorElement: <RouteErrorBoundary /> },
+  { path: "/student/rules", element: <ProtectedRoute roles={['student']}><MessRulesPage /></ProtectedRoute>, errorElement: <RouteErrorBoundary /> },
   // Manager Routes
   { path: "/manager", element: <ProtectedRoute roles={['manager']}><ManagerDashboardPage /></ProtectedRoute>, errorElement: <RouteErrorBoundary /> },
   { path: "/manager/students", element: <ProtectedRoute roles={['manager']}><StudentManagementPage /></ProtectedRoute>, errorElement: <RouteErrorBoundary /> },
