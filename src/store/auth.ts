@@ -1,0 +1,23 @@
+import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import type { User } from '@shared/types';
+type AuthState = {
+  user: Omit<User, 'passwordHash'> | null;
+  isAuthenticated: boolean;
+  login: (user: Omit<User, 'passwordHash'>) => void;
+  logout: () => void;
+};
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set) => ({
+      user: null,
+      isAuthenticated: false,
+      login: (user) => set({ user, isAuthenticated: true }),
+      logout: () => set({ user: null, isAuthenticated: false }),
+    }),
+    {
+      name: 'auth-storage',
+      storage: createJSONStorage(() => localStorage),
+    }
+  )
+);
