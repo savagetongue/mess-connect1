@@ -2,18 +2,15 @@ import { Hono } from "hono";
 import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator';
 import type { Env } from './core-utils';
-import { UserEntity, MenuEntity, ComplaintEntity, SuggestionEntity } from "./entities";
+import { UserEntity, MenuEntity, ComplaintEntity, SuggestionEntity, SettingsEntity, MonthlyDueEntity, GuestPaymentEntity } from "./entities";
 import { ok, bad, notFound } from './core-utils';
-import type { User, WeeklyMenu, Complaint, Suggestion } from "@shared/types";
+import type { User, WeeklyMenu, Complaint, Suggestion, MessSettings, MonthlyDue, GuestPayment } from "@shared/types";
+import { format } from 'date-fns';
 // A simple placeholder for image uploads. In a real app, use a service like R2.
-// This function will just return a placeholder URL.
 const uploadImage = async (file: File): Promise<string> => {
-  // In a real implementation, you would upload the file to a storage service
-  // and return the URL. For now, we'll use a placeholder.
-  // The size is included to make it somewhat unique for demonstration.
   return `https://placehold.co/600x400?text=Image+Placeholder\\n${file.size}+bytes`;
 };
-// Basic password hashing simulation (replace with a real library like bcrypt in production)
+// Basic password hashing simulation
 const hashPassword = async (password: string) => {
     const encoder = new TextEncoder();
     const data = encoder.encode(password);
@@ -61,7 +58,7 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     const { passwordHash: _, ...userResponse } = user;
     return ok(c, userResponse);
   });
-  // --- STUDENT MANAGEMENT ROUTES (MANAGER) ---
+  // --- STUDENT MANAGEMENT & DUES GENERATION ---
   app.get('/api/students', async (c) => {
     const { items: allUsers } = await UserEntity.list(c.env);
     const students = allUsers.filter(u => u.role === 'student').map(({ passwordHash, ...rest }) => rest);
@@ -74,6 +71,18 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     const studentEntity = new UserEntity(c.env, studentId);
     if (!await studentEntity.exists()) return notFound(c, 'Student not found.');
     await studentEntity.patch({ status });
+    // If student is approved, generate the current month's due if it doesn't exist
+    if (status === 'approved') {
+        const settingsEntity = new SettingsEntity(c.env, 'settings');
+        const settings = await settingsEntity.getState();
+        const currentMonth = format(new Date(), 'yyyy-MM');
+        const dueId = `${studentId}:${currentMonth}`;
+        const dueEntity = new MonthlyDueEntity(c.env, dueId);
+        if (!await dueEntity.exists()) {
+            const newDue: MonthlyDue = { id: dueId, studentId, month: currentMonth, amount: settings.monthlyFee, status: 'due' };
+            await MonthlyDueEntity.create(c.env, newDue);
+        }
+    }
     return ok(c, { message: `Student status updated to ${status}` });
   });
   // --- MENU ROUTES ---
@@ -108,7 +117,6 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     return ok(c, newComplaint);
   });
   app.get('/api/complaints', async (c) => {
-    // This is a simplified auth check. In a real app, use middleware with JWT/sessions.
     const studentId = c.req.query('studentId');
     const { items } = await ComplaintEntity.list(c.env);
     const complaints = studentId ? items.filter(item => item.studentId === studentId) : items;
@@ -143,6 +151,47 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     if (!await suggestionEntity.exists()) return notFound(c, 'Suggestion not found.');
     await suggestionEntity.patch({ reply });
     return ok(c, { message: 'Reply added.' });
+  });
+  // --- FINANCIAL & SETTINGS ROUTES ---
+  app.get('/api/settings', async (c) => {
+    const settingsEntity = new SettingsEntity(c.env, 'settings');
+    return ok(c, await settingsEntity.getState());
+  });
+  const settingsSchema = z.object({ monthlyFee: z.number().min(0) });
+  app.post('/api/settings', zValidator('json', settingsSchema), async (c) => {
+    const { monthlyFee } = c.req.valid('json');
+    const settingsEntity = new SettingsEntity(c.env, 'settings');
+    await settingsEntity.patch({ monthlyFee });
+    return ok(c, await settingsEntity.getState());
+  });
+  app.get('/api/my-dues', async (c) => {
+    // In a real app, student ID would come from a secure session/token
+    const studentId = c.req.query('studentId');
+    if (!studentId) return bad(c, 'Student ID is required.');
+    const { items } = await MonthlyDueEntity.list(c.env);
+    const dues = items.filter(d => d.studentId === studentId);
+    return ok(c, { dues });
+  });
+  app.get('/api/financials', async (c) => {
+    const [duesResult, guestPaymentsResult] = await Promise.all([
+        MonthlyDueEntity.list(c.env),
+        GuestPaymentEntity.list(c.env)
+    ]);
+    return ok(c, { dues: duesResult.items, guestPayments: guestPaymentsResult.items });
+  });
+  const guestPaymentSchema = z.object({ name: z.string().min(2), phone: z.string().min(10), amount: z.number().min(1) });
+  app.post('/api/guest-payment', zValidator('json', guestPaymentSchema), async (c) => {
+    const { name, phone, amount } = c.req.valid('json');
+    const newPayment: GuestPayment = { id: crypto.randomUUID(), name, phone, amount, createdAt: Date.now() };
+    await GuestPaymentEntity.create(c.env, newPayment);
+    return ok(c, newPayment);
+  });
+  app.post('/api/dues/:id/mark-paid', async (c) => {
+    const dueId = c.req.param('id');
+    const dueEntity = new MonthlyDueEntity(c.env, dueId);
+    if (!await dueEntity.exists()) return notFound(c, 'Due record not found.');
+    await dueEntity.patch({ status: 'paid' });
+    return ok(c, { message: 'Marked as paid.' });
   });
 }
 // Helper to get week number
