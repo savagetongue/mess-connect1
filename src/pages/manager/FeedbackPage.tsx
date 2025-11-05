@@ -16,6 +16,7 @@ import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { Image as ImageIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 const replySchema = z.object({
   reply: z.string().min(1, 'Reply cannot be empty.'),
 });
@@ -122,9 +123,19 @@ export function FeedbackPage() {
                         <AccordionContent className="space-y-4">
                           <p className="text-muted-foreground whitespace-pre-wrap">{c.text}</p>
                           {c.imageUrl && (
-                            <a href={c.imageUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm text-orange-500 hover:underline">
-                                <ImageIcon className="h-4 w-4" /> {t('complaints_viewImage')}
-                            </a>
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button variant="link" className="p-0 h-auto inline-flex items-center gap-2 text-sm text-orange-500 hover:underline">
+                                  <ImageIcon className="h-4 w-4" /> {t('complaints_viewImage')}
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent>
+                                <DialogHeader>
+                                  <DialogTitle>Attached Image</DialogTitle>
+                                </DialogHeader>
+                                <img src={c.imageUrl} alt="Complaint attachment" className="rounded-md max-h-[70vh] object-contain" />
+                              </DialogContent>
+                            </Dialog>
                           )}
                           {c.reply ? (
                             <div className="p-4 bg-muted/50 rounded-lg border">

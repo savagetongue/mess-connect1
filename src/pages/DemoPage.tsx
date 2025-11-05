@@ -143,9 +143,6 @@ export function DemoPage() {
           <Button onClick={() => send().catch(err => toast.error(err.message))} disabled={!selectedUserId || !selectedChatId || !text.trim()}>Send</Button>
         </div>
       </div>
-      <footer className="mt-8 text-center text-muted-foreground/80">
-        <p>Built with ❤️ at Cloudflare</p>
-      </footer>
       <Toaster richColors closeButton />
     </main>
     </AppLayout>

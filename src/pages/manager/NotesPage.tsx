@@ -14,6 +14,7 @@ import type { Note } from "@shared/types";
 import { Plus, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
+import { AnimatePresence, motion } from 'framer-motion';
 const noteSchema = z.object({
   text: z.string().min(1, 'Note cannot be empty.'),
 });
@@ -29,7 +30,7 @@ export function NotesPage() {
     setIsLoading(true);
     try {
       const data = await api<{ notes: Note[] }>('/api/notes');
-      setNotes(data.notes);
+      setNotes(data.notes.sort((a, b) => (a.completed ? 1 : -1) - (b.completed ? 1 : -1) || a.id.localeCompare(b.id)));
     } catch (error) {
       toast.error("Failed to fetch notes.");
     } finally {
@@ -78,14 +79,14 @@ export function NotesPage() {
           <h1 className="text-3xl font-bold font-display">{t('notes_title')}</h1>
           <p className="text-muted-foreground">{t('notes_description')}</p>
         </div>
-        <Card className="max-w-2xl mx-auto">
+        <Card className="max-w-3xl mx-auto shadow-lg">
           <CardHeader>
             <CardTitle>{t('notes_cardTitle')}</CardTitle>
             <CardDescription>{t('notes_cardDescription')}</CardDescription>
           </CardHeader>
           <CardContent>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="flex gap-2 mb-4">
+              <form onSubmit={form.handleSubmit(onSubmit)} className="flex gap-2 mb-6">
                 <FormField
                   control={form.control}
                   name="text"
@@ -98,35 +99,49 @@ export function NotesPage() {
                     </FormItem>
                   )}
                 />
-                <Button type="submit" size="icon" className="bg-orange-500 hover:bg-orange-600" disabled={form.formState.isSubmitting}>
-                  <Plus className="h-4 w-4" />
+                <Button type="submit" className="bg-orange-500 hover:bg-orange-600" disabled={form.formState.isSubmitting}>
+                  <Plus className="mr-2 h-4 w-4" /> Add
                 </Button>
               </form>
             </Form>
-            <div className="space-y-2">
+            <div className="space-y-3">
               {isLoading ? <p>Loading notes...</p> : notes.length > 0 ? (
-                notes.map(note => (
-                  <div key={note.id} className="flex items-center justify-between p-3 rounded-md border bg-muted/50 hover:bg-muted/80 transition-colors">
-                    <div className="flex items-center gap-3">
-                      <Checkbox
-                        id={`note-${note.id}`}
-                        checked={note.completed}
-                        onCheckedChange={() => toggleNote(note)}
-                      />
-                      <label
-                        htmlFor={`note-${note.id}`}
-                        className={cn("text-sm font-medium leading-none cursor-pointer", note.completed && "line-through text-muted-foreground")}
-                      >
-                        {note.text}
-                      </label>
-                    </div>
-                    <Button variant="ghost" size="icon" onClick={() => deleteNote(note.id)}>
-                      <Trash2 className="h-4 w-4 text-red-500" />
-                    </Button>
-                  </div>
-                ))
+                <AnimatePresence>
+                  {notes.map(note => (
+                    <motion.div
+                      key={note.id}
+                      layout
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
+                      transition={{ duration: 0.2 }}
+                      className="flex items-center justify-between p-4 rounded-lg border bg-background hover:bg-muted/50 transition-colors group"
+                    >
+                      <div className="flex items-center gap-4">
+                        <Checkbox
+                          id={`note-${note.id}`}
+                          checked={note.completed}
+                          onCheckedChange={() => toggleNote(note)}
+                          className="h-5 w-5"
+                        />
+                        <label
+                          htmlFor={`note-${note.id}`}
+                          className={cn("text-sm font-medium leading-none cursor-pointer transition-colors", note.completed && "line-through text-muted-foreground")}
+                        >
+                          {note.text}
+                        </label>
+                      </div>
+                      <Button variant="ghost" size="icon" onClick={() => deleteNote(note.id)} className="opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Trash2 className="h-4 w-4 text-red-500" />
+                      </Button>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
               ) : (
-                <p className="text-center text-muted-foreground py-8">{t('notes_empty')}</p>
+                <div className="text-center text-muted-foreground py-12">
+                  <p className="font-semibold">{t('notes_empty')}</p>
+                  <p className="text-sm">Add a new to-do item above to get started.</p>
+                </div>
               )}
             </div>
           </CardContent>
