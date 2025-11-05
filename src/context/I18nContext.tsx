@@ -5,7 +5,7 @@ export interface I18nContextType {
   i18n: i18nInstance;
   t: TFunction;
 }
-export const I18nContext = createContext<I18nContextType | undefined>(undefined);
+const I18nContext = createContext<I18nContextType | undefined>(undefined);
 export const I18nProvider = ({ children }: { children: ReactNode }) => {
   const { i18n, t } = useOriginalTranslation();
   return (
