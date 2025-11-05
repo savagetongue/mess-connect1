@@ -1,7 +1,7 @@
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuthStore } from "@/store/auth";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "@/context/I18nContext";
 export function AdminDashboardPage() {
     const { t } = useTranslation();
     const user = useAuthStore(s => s.user);
