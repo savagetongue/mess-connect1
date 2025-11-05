@@ -1,6 +1,6 @@
 # Mess Connect
 
-[cloudflarebutton]
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/savagetongue/mess-connect1)
 
 A comprehensive, subscription-based management platform for mess halls, seamlessly connecting students, managers, and admins.
 
@@ -103,7 +103,7 @@ This project is designed for easy deployment to Cloudflare Workers.
 
 Alternatively, deploy directly from your GitHub repository:
 
-[cloudflarebutton]
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/savagetongue/mess-connect1)
 
 ## Project Structure
 
