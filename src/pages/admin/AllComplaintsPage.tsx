@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -9,12 +9,17 @@ import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Image as ImageIcon } from 'lucide-react';
+import { Image as ImageIcon, Search } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { Input } from '@/components/ui/input';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+type FilterStatus = 'all' | 'replied' | 'pending';
 export function AllComplaintsPage() {
   const { t } = useTranslation();
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState<FilterStatus>('all');
   useEffect(() => {
     const fetchComplaints = async () => {
       setIsLoading(true);
@@ -29,6 +34,19 @@ export function AllComplaintsPage() {
     };
     fetchComplaints();
   }, []);
+  const filteredComplaints = useMemo(() => {
+    return complaints
+      .filter(c => {
+        if (filterStatus === 'all') return true;
+        if (filterStatus === 'replied') return !!c.reply;
+        if (filterStatus === 'pending') return !c.reply;
+        return true;
+      })
+      .filter(c => 
+        c.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        c.text.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+  }, [complaints, searchTerm, filterStatus]);
   return (
     <AppLayout>
       <div className="space-y-6">
@@ -38,8 +56,33 @@ export function AllComplaintsPage() {
         </div>
         <Card>
           <CardHeader>
-            <CardTitle>{t('allComplaints_logTitle')}</CardTitle>
-            <CardDescription>{t('allComplaints_logDescription')}</CardDescription>
+            <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+              <div>
+                <CardTitle>{t('allComplaints_logTitle')}</CardTitle>
+                <CardDescription>{t('allComplaints_logDescription')}</CardDescription>
+              </div>
+              <div className="flex flex-col sm:flex-row items-center gap-2">
+                <ToggleGroup 
+                  type="single" 
+                  defaultValue="all" 
+                  value={filterStatus}
+                  onValueChange={(value: FilterStatus) => value && setFilterStatus(value)}
+                  aria-label="Filter by status"
+                >
+                  <ToggleGroupItem value="all" aria-label="All complaints">All</ToggleGroupItem>
+                  <ToggleGroupItem value="pending" aria-label="Pending complaints">{t('complaints_pending')}</ToggleGroupItem>
+                  <ToggleGroupItem value="replied" aria-label="Replied complaints">{t('complaints_replied')}</ToggleGroupItem>
+                </ToggleGroup>
+                <div className="w-full sm:w-64">
+                  <Input 
+                    placeholder="Search complaints..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    icon={<Search className="h-4 w-4" />}
+                  />
+                </div>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
             <Table>
@@ -54,9 +97,9 @@ export function AllComplaintsPage() {
               </TableHeader>
               <TableBody>
                 {isLoading ? (
-                  <TableRow><TableCell colSpan={5} className="text-center">Loading complaints...</TableCell></TableRow>
-                ) : complaints.length > 0 ? (
-                  complaints.map(c => (
+                  <TableRow><TableCell colSpan={5} className="text-center h-24">Loading complaints...</TableCell></TableRow>
+                ) : filteredComplaints.length > 0 ? (
+                  filteredComplaints.map(c => (
                     <TableRow key={c.id}>
                       <TableCell>{c.studentName}</TableCell>
                       <TableCell className="max-w-sm truncate">{c.text}</TableCell>
@@ -93,7 +136,7 @@ export function AllComplaintsPage() {
                     </TableRow>
                   ))
                 ) : (
-                  <TableRow><TableCell colSpan={5} className="text-center">{t('allComplaints_noComplaints')}</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={5} className="text-center h-24">{t('allComplaints_noComplaints')}</TableCell></TableRow>
                 )}
               </TableBody>
             </Table>

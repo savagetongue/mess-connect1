@@ -24,19 +24,21 @@ export function AppLayout({ children, className }: AppLayoutProps): JSX.Element 
       <div className="flex min-h-screen bg-background">
         <AppSidebar />
         <SidebarInset className="flex-1 flex flex-col">
-          <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-4 lg:h-[60px] lg:px-6">
+          <header className="sticky top-0 z-10 flex h-14 items-center justify-between gap-4 border-b bg-background/80 backdrop-blur-sm px-4 lg:h-[60px] lg:px-6">
             <div className="lg:hidden">
               <SidebarTrigger />
             </div>
             <div className="flex-1">
               {/* Header content can go here */}
             </div>
-            <LanguageToggle />
-            <ThemeToggle className="relative top-0 right-0" />
-            <Button variant="ghost" size="icon" onClick={handleLogout}>
-              <LogOut className="h-5 w-5" />
-              <span className="sr-only">Logout</span>
-            </Button>
+            <div className="flex items-center gap-2">
+              <LanguageToggle />
+              <ThemeToggle className="relative top-0 right-0" />
+              <Button variant="ghost" size="icon" onClick={handleLogout}>
+                <LogOut className="h-5 w-5" />
+                <span className="sr-only">Logout</span>
+              </Button>
+            </div>
           </header>
           <main className={"flex-1 p-4 sm:p-6 lg:p-8" + (className ? ` ${className}` : "")}>
             {children}

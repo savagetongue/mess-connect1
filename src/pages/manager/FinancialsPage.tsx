@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,13 +10,17 @@ import type { MonthlyDue, GuestPayment, User } from "@shared/types";
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { useTranslation } from 'react-i18next';
+import { Input } from '@/components/ui/input';
+import { Search } from 'lucide-react';
 export function FinancialsPage() {
   const { t } = useTranslation();
   const [dues, setDues] = useState<MonthlyDue[]>([]);
   const [guestPayments, setGuestPayments] = useState<GuestPayment[]>([]);
   const [students, setStudents] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const studentMap = new Map(students.map(s => [s.id, s.name]));
+  const [duesSearch, setDuesSearch] = useState('');
+  const [guestsSearch, setGuestsSearch] = useState('');
+  const studentMap = useMemo(() => new Map(students.map(s => [s.id, s.name])), [students]);
   const fetchData = async () => {
     setIsLoading(true);
     try {
@@ -47,6 +51,17 @@ export function FinancialsPage() {
       });
     }
   };
+  const filteredDues = useMemo(() => {
+    if (!duesSearch) return dues;
+    return dues.filter(due => {
+      const studentName = studentMap.get(due.studentId) || '';
+      return studentName.toLowerCase().includes(duesSearch.toLowerCase());
+    });
+  }, [dues, duesSearch, studentMap]);
+  const filteredGuestPayments = useMemo(() => {
+    if (!guestsSearch) return guestPayments;
+    return guestPayments.filter(p => p.name.toLowerCase().includes(guestsSearch.toLowerCase()));
+  }, [guestPayments, guestsSearch]);
   return (
     <AppLayout>
       <div className="space-y-6">
@@ -62,8 +77,20 @@ export function FinancialsPage() {
           <TabsContent value="dues">
             <Card>
               <CardHeader>
-                <CardTitle>{t('financials_duesTitle')}</CardTitle>
-                <CardDescription>{t('financials_duesDescription')}</CardDescription>
+                <div className="flex justify-between items-center">
+                  <div>
+                    <CardTitle>{t('financials_duesTitle')}</CardTitle>
+                    <CardDescription>{t('financials_duesDescription')}</CardDescription>
+                  </div>
+                  <div className="w-full max-w-sm">
+                    <Input 
+                      placeholder="Search by student name..."
+                      value={duesSearch}
+                      onChange={(e) => setDuesSearch(e.target.value)}
+                      icon={<Search className="h-4 w-4" />}
+                    />
+                  </div>
+                </div>
               </CardHeader>
               <CardContent>
                 <Table>
@@ -78,9 +105,9 @@ export function FinancialsPage() {
                   </TableHeader>
                   <TableBody>
                     {isLoading ? (
-                      <TableRow><TableCell colSpan={5} className="text-center">Loading...</TableCell></TableRow>
-                    ) : dues.length > 0 ? (
-                      dues.map((due) => (
+                      <TableRow><TableCell colSpan={5} className="text-center h-24">Loading...</TableCell></TableRow>
+                    ) : filteredDues.length > 0 ? (
+                      filteredDues.map((due) => (
                         <TableRow key={due.id}>
                           <TableCell>{studentMap.get(due.studentId) || due.studentId}</TableCell>
                           <TableCell>{format(new Date(due.month), 'MMMM yyyy')}</TableCell>
@@ -100,7 +127,7 @@ export function FinancialsPage() {
                         </TableRow>
                       ))
                     ) : (
-                      <TableRow><TableCell colSpan={5} className="text-center">{t('financials_noDues')}</TableCell></TableRow>
+                      <TableRow><TableCell colSpan={5} className="text-center h-24">{t('financials_noDues')}</TableCell></TableRow>
                     )}
                   </TableBody>
                 </Table>
@@ -110,8 +137,20 @@ export function FinancialsPage() {
           <TabsContent value="guests">
             <Card>
               <CardHeader>
-                <CardTitle>{t('financials_guestsTitle')}</CardTitle>
-                <CardDescription>{t('financials_guestsDescription')}</CardDescription>
+                <div className="flex justify-between items-center">
+                  <div>
+                    <CardTitle>{t('financials_guestsTitle')}</CardTitle>
+                    <CardDescription>{t('financials_guestsDescription')}</CardDescription>
+                  </div>
+                  <div className="w-full max-w-sm">
+                    <Input 
+                      placeholder="Search by guest name..."
+                      value={guestsSearch}
+                      onChange={(e) => setGuestsSearch(e.target.value)}
+                      icon={<Search className="h-4 w-4" />}
+                    />
+                  </div>
+                </div>
               </CardHeader>
               <CardContent>
                 <Table>
@@ -125,9 +164,9 @@ export function FinancialsPage() {
                   </TableHeader>
                   <TableBody>
                      {isLoading ? (
-                      <TableRow><TableCell colSpan={4} className="text-center">Loading...</TableCell></TableRow>
-                    ) : guestPayments.length > 0 ? (
-                      guestPayments.map((payment) => (
+                      <TableRow><TableCell colSpan={4} className="text-center h-24">Loading...</TableCell></TableRow>
+                    ) : filteredGuestPayments.length > 0 ? (
+                      filteredGuestPayments.map((payment) => (
                         <TableRow key={payment.id}>
                           <TableCell>{payment.name}</TableCell>
                           <TableCell>{payment.phone}</TableCell>
@@ -136,7 +175,7 @@ export function FinancialsPage() {
                         </TableRow>
                       ))
                     ) : (
-                      <TableRow><TableCell colSpan={4} className="text-center">{t('financials_noGuests')}</TableCell></TableRow>
+                      <TableRow><TableCell colSpan={4} className="text-center h-24">{t('financials_noGuests')}</TableCell></TableRow>
                     )}
                   </TableBody>
                 </Table>
