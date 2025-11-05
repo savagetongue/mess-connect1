@@ -1,75 +1,102 @@
 import { Hono } from "hono";
+import { z } from 'zod';
+import { zValidator } from '@hono/zod-validator';
 import type { Env } from './core-utils';
-import { UserEntity, ChatBoardEntity } from "./entities";
+import { UserEntity } from "./entities";
 import { ok, bad, notFound, isStr } from './core-utils';
-
+import type { User } from "@shared/types";
+// Basic password hashing simulation (replace with a real library like bcrypt in production)
+const hashPassword = async (password: string) => {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(password);
+    const hash = await crypto.subtle.digest('SHA-256', data);
+    return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+};
+const verifyPassword = async (password: string, hash: string) => {
+    const passwordHash = await hashPassword(password);
+    return passwordHash === hash;
+};
 export function userRoutes(app: Hono<{ Bindings: Env }>) {
-  app.get('/api/test', (c) => c.json({ success: true, data: { name: 'CF Workers Demo' }}));
-
-  // USERS
-  app.get('/api/users', async (c) => {
-    await UserEntity.ensureSeed(c.env);
-    const cq = c.req.query('cursor');
-    const lq = c.req.query('limit');
-    const page = await UserEntity.list(c.env, cq ?? null, lq ? Math.max(1, (Number(lq) | 0)) : undefined);
-    return ok(c, page);
+  // Ensure admin and manager exist on first run
+  app.use('/api/*', async (c, next) => {
+    const adminUser = new UserEntity(c.env, 'admin@messconnect.com');
+    if (!await adminUser.exists()) {
+      const passwordHash = await hashPassword('password');
+      await UserEntity.create(c.env, {
+        id: 'admin@messconnect.com',
+        name: 'Admin',
+        phone: '0000000000',
+        passwordHash,
+        role: 'admin',
+        status: 'approved'
+      });
+    }
+    const managerUser = new UserEntity(c.env, 'manager@messconnect.com');
+    if (!await managerUser.exists()) {
+      const passwordHash = await hashPassword('password');
+      await UserEntity.create(c.env, {
+        id: 'manager@messconnect.com',
+        name: 'Manager',
+        phone: '1111111111',
+        passwordHash,
+        role: 'manager',
+        status: 'approved'
+      });
+    }
+    await next();
   });
-
-  app.post('/api/users', async (c) => {
-    const { name } = (await c.req.json()) as { name?: string };
-    if (!name?.trim()) return bad(c, 'name required');
-    return ok(c, await UserEntity.create(c.env, { id: crypto.randomUUID(), name: name.trim() }));
+  const registerSchema = z.object({
+    name: z.string().min(2),
+    email: z.string().email(),
+    phone: z.string().min(10),
+    password: z.string().min(6),
   });
-
-  // CHATS
-  app.get('/api/chats', async (c) => {
-    await ChatBoardEntity.ensureSeed(c.env);
-    const cq = c.req.query('cursor');
-    const lq = c.req.query('limit');
-    const page = await ChatBoardEntity.list(c.env, cq ?? null, lq ? Math.max(1, (Number(lq) | 0)) : undefined);
-    return ok(c, page);
+  app.post('/api/auth/register', zValidator('json', registerSchema), async (c) => {
+    const { name, email, phone, password } = c.req.valid('json');
+    const user = new UserEntity(c.env, email);
+    if (await user.exists()) {
+      return bad(c, 'User with this email already exists.');
+    }
+    const passwordHash = await hashPassword(password);
+    const newUser: User = {
+      id: email,
+      name,
+      phone,
+      passwordHash,
+      role: 'student',
+      status: 'pending',
+    };
+    await UserEntity.create(c.env, newUser);
+    const { passwordHash: _, ...userResponse } = newUser;
+    return ok(c, userResponse);
   });
-
-  app.post('/api/chats', async (c) => {
-    const { title } = (await c.req.json()) as { title?: string };
-    if (!title?.trim()) return bad(c, 'title required');
-    const created = await ChatBoardEntity.create(c.env, { id: crypto.randomUUID(), title: title.trim(), messages: [] });
-    return ok(c, { id: created.id, title: created.title });
+  const loginSchema = z.object({
+    email: z.string().email(),
+    password: z.string(),
   });
-
-  // MESSAGES
-  app.get('/api/chats/:chatId/messages', async (c) => {
-    const chat = new ChatBoardEntity(c.env, c.req.param('chatId'));
-    if (!await chat.exists()) return notFound(c, 'chat not found');
-    return ok(c, await chat.listMessages());
+  app.post('/api/auth/login', zValidator('json', loginSchema), async (c) => {
+    const { email, password } = c.req.valid('json');
+    const userEntity = new UserEntity(c.env, email);
+    if (!await userEntity.exists()) {
+      return notFound(c, 'User not found.');
+    }
+    const user = await userEntity.getState();
+    const isPasswordValid = await verifyPassword(password, user.passwordHash);
+    if (!isPasswordValid) {
+      return bad(c, 'Invalid credentials.');
+    }
+    const { passwordHash: _, ...userResponse } = user;
+    return ok(c, userResponse);
   });
-
-  app.post('/api/chats/:chatId/messages', async (c) => {
-    const chatId = c.req.param('chatId');
-    const { userId, text } = (await c.req.json()) as { userId?: string; text?: string };
-    if (!isStr(userId) || !text?.trim()) return bad(c, 'userId and text required');
-    const chat = new ChatBoardEntity(c.env, chatId);
-    if (!await chat.exists()) return notFound(c, 'chat not found');
-    return ok(c, await chat.sendMessage(userId, text.trim()));
-  });
-
-  // DELETE: Users
-  app.delete('/api/users/:id', async (c) => ok(c, { id: c.req.param('id'), deleted: await UserEntity.delete(c.env, c.req.param('id')) }));
-
-  app.post('/api/users/deleteMany', async (c) => {
-    const { ids } = (await c.req.json()) as { ids?: string[] };
-    const list = ids?.filter(isStr) ?? [];
-    if (list.length === 0) return bad(c, 'ids required');
-    return ok(c, { deletedCount: await UserEntity.deleteMany(c.env, list), ids: list });
-  });
-
-  // DELETE: Chats
-  app.delete('/api/chats/:id', async (c) => ok(c, { id: c.req.param('id'), deleted: await ChatBoardEntity.delete(c.env, c.req.param('id')) }));
-
-  app.post('/api/chats/deleteMany', async (c) => {
-    const { ids } = (await c.req.json()) as { ids?: string[] };
-    const list = ids?.filter(isStr) ?? [];
-    if (list.length === 0) return bad(c, 'ids required');
-    return ok(c, { deletedCount: await ChatBoardEntity.deleteMany(c.env, list), ids: list });
+  // Placeholder for a protected route
+  app.get('/api/auth/me', async (c) => {
+      // In a real app, you'd get the user ID from a validated token/session
+      const userId = c.req.query('userId');
+      if (!isStr(userId)) return bad(c, 'Not authenticated');
+      const userEntity = new UserEntity(c.env, userId);
+      if (!await userEntity.exists()) return notFound(c, 'User not found');
+      const user = await userEntity.getState();
+      const { passwordHash: _, ...userResponse } = user;
+      return ok(c, userResponse);
   });
 }

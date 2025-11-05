@@ -1,148 +1,164 @@
-// Home page of the app, Currently a demo page for demonstration.
-// Please rewrite this file to implement your own logic. Do not replace or delete it, simply rewrite this HomePage.tsx file.
-import { useEffect } from 'react'
-import { Sparkles } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { ThemeToggle } from '@/components/ThemeToggle'
-import { Toaster, toast } from '@/components/ui/sonner'
-import { create } from 'zustand'
-import { useShallow } from 'zustand/react/shallow'
-import { AppLayout } from '@/components/layout/AppLayout'
-
-// Timer store: independent slice with a clear, minimal API, for demonstration
-type TimerState = {
-  isRunning: boolean;
-  elapsedMs: number;
-  start: () => void;
-  pause: () => void;
-  reset: () => void;
-  tick: (deltaMs: number) => void;
-}
-
-const useTimerStore = create<TimerState>((set) => ({
-  isRunning: false,
-  elapsedMs: 0,
-  start: () => set({ isRunning: true }),
-  pause: () => set({ isRunning: false }),
-  reset: () => set({ elapsedMs: 0, isRunning: false }),
-  tick: (deltaMs) => set((s) => ({ elapsedMs: s.elapsedMs + deltaMs })),
-}))
-
-// Counter store: separate slice to showcase multiple stores without coupling
-type CounterState = {
-  count: number;
-  inc: () => void;
-  reset: () => void;
-}
-
-const useCounterStore = create<CounterState>((set) => ({
-  count: 0,
-  inc: () => set((s) => ({ count: s.count + 1 })),
-  reset: () => set({ count: 0 }),
-}))
-
-function formatDuration(ms: number): string {
-  const total = Math.max(0, Math.floor(ms / 1000))
-  const m = Math.floor(total / 60)
-  const s = total % 60
-  return `${m}:${s.toString().padStart(2, '0')}`
-}
-
-export function HomePage() {
-  // Select only what is needed to avoid unnecessary re-renders
-  const { isRunning, elapsedMs } = useTimerStore(
-    useShallow((s) => ({ isRunning: s.isRunning, elapsedMs: s.elapsedMs })),
-  )
-  const start = useTimerStore((s) => s.start)
-  const pause = useTimerStore((s) => s.pause)
-  const resetTimer = useTimerStore((s) => s.reset)
-  const count = useCounterStore((s) => s.count)
-  const inc = useCounterStore((s) => s.inc)
-  const resetCount = useCounterStore((s) => s.reset)
-
-  // Drive the timer only while running; avoid update-depth issues with a scoped RAF
-  useEffect(() => {
-    if (!isRunning) return
-    let raf = 0
-    let last = performance.now()
-    const loop = () => {
-      const now = performance.now()
-      const delta = now - last
-      last = now
-      // Read store API directly to keep effect deps minimal and stable
-      useTimerStore.getState().tick(delta)
-      raf = requestAnimationFrame(loop)
+import { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Toaster, toast } from '@/components/ui/sonner';
+import { api } from '@/lib/api-client';
+import { useAuthStore } from '@/store/auth';
+import type { User, UserRole } from '@shared/types';
+import { Utensils } from 'lucide-react';
+import { ThemeToggle } from '@/components/ThemeToggle';
+const loginSchema = z.object({
+  email: z.string().email({ message: 'Please enter a valid email.' }),
+  password: z.string().min(1, { message: 'Password is required.' }),
+});
+type LoginFormValues = z.infer<typeof loginSchema>;
+const LoginForm = ({ role }: { role: UserRole }) => {
+  const navigate = useNavigate();
+  const login = useAuthStore((s) => s.login);
+  const form = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: '', password: '' },
+  });
+  const onSubmit = async (values: LoginFormValues) => {
+    try {
+      const user = await api<Omit<User, 'passwordHash'>>('/api/auth/login', {
+        method: 'POST',
+        body: JSON.stringify(values),
+      });
+      if (user.role !== role) {
+        toast.error('Access Denied', { description: `You are not authorized to log in as a ${role}.` });
+        return;
+      }
+      login(user);
+      toast.success('Login successful!');
+      if (user.status === 'pending') {
+        navigate('/pending-approval');
+        return;
+      }
+      switch (user.role) {
+        case 'student': navigate('/student'); break;
+        case 'manager': navigate('/manager'); break;
+        case 'admin': navigate('/admin'); break;
+        default: navigate('/');
+      }
+    } catch (error) {
+      toast.error('Login failed', {
+        description: error instanceof Error ? error.message : 'An unknown error occurred.',
+      });
     }
-    raf = requestAnimationFrame(loop)
-    return () => cancelAnimationFrame(raf)
-  }, [isRunning])
-
-  const onPleaseWait = () => {
-    inc()
-    if (!isRunning) {
-      start()
-      toast.success('Building your app…', {
-        description: 'Hang tight, we\'re setting everything up.',
-      })
-    } else {
-      pause()
-      toast.info('Taking a short pause', {
-        description: 'We\'ll continue shortly.',
-      })
-    }
-  }
-
-  const formatted = formatDuration(elapsedMs)
-
+  };
   return (
-    <AppLayout>
-      <div className="min-h-screen flex flex-col items-center justify-center bg-background text-foreground p-4 overflow-hidden relative">
-        <ThemeToggle />
-        <div className="absolute inset-0 bg-gradient-rainbow opacity-10 dark:opacity-20 pointer-events-none" />
-        <div className="text-center space-y-8 relative z-10 animate-fade-in">
-          <div className="flex justify-center">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-primary flex items-center justify-center shadow-primary floating">
-              <Sparkles className="w-8 h-8 text-white rotating" />
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Email</FormLabel>
+              <FormControl>
+                <Input type="email" placeholder="anand@example.com" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="password"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Password</FormLabel>
+              <FormControl>
+                <Input type="password" placeholder="••••••••" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <Button type="submit" className="w-full bg-orange-500 hover:bg-orange-600" disabled={form.formState.isSubmitting}>
+          {form.formState.isSubmitting ? 'Signing In...' : 'Sign In'}
+        </Button>
+      </form>
+    </Form>
+  );
+};
+export function HomePage() {
+  const isAuthenticated = useAuthStore(s => s.isAuthenticated);
+  const user = useAuthStore(s => s.user);
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      if (user.status === 'pending') {
+        navigate('/pending-approval');
+        return;
+      }
+      switch (user.role) {
+        case 'student': navigate('/student'); break;
+        case 'manager': navigate('/manager'); break;
+        case 'admin': navigate('/admin'); break;
+        default: navigate('/');
+      }
+    }
+  }, [isAuthenticated, user, navigate]);
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4 relative">
+      <ThemeToggle className="absolute top-4 right-4" />
+      <Toaster richColors closeButton />
+      <div className="w-full max-w-md">
+        <div className="text-center mb-8">
+            <div className="inline-block p-3 bg-orange-500 text-white rounded-full">
+                <Utensils className="h-8 w-8" />
             </div>
-          </div>
-          <h1 className="text-5xl md:text-7xl font-display font-bold text-balance leading-tight">
-            Creating your <span className="text-gradient">app</span>
-          </h1>
-          <p className="text-lg md:text-xl text-muted-foreground max-w-xl mx-auto text-pretty">
-            Your application would be ready soon.
-          </p>
-          <div className="flex justify-center gap-4">
-            <Button 
-              size="lg"
-              onClick={onPleaseWait}
-              className="btn-gradient px-8 py-4 text-lg font-semibold hover:-translate-y-0.5 transition-all duration-200"
-              aria-live="polite"
-            >
-              Please Wait
-            </Button>
-          </div>
-          <div className="flex items-center justify-center gap-6 text-sm text-muted-foreground">
-            <div>
-              Time elapsed: <span className="font-medium tabular-nums text-foreground">{formatted}</span>
-            </div>
-            <div>
-              Coins: <span className="font-medium tabular-nums text-foreground">{count}</span>
-            </div>
-          </div>
-          <div className="flex justify-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => { resetTimer(); resetCount(); toast('Reset complete') }}>
-              Reset
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => { inc(); toast('Coin added') }}>
-              Add Coin
-            </Button>
-          </div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mt-4 font-display">
+                Welcome to Mess Connect
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400">Your one-stop solution for mess management.</p>
         </div>
-        <footer className="absolute bottom-8 text-center text-muted-foreground/80">
-          <p>Powered by Cloudflare</p>
-        </footer>
-        <Toaster richColors closeButton />
+        <Card>
+          <CardHeader>
+            <CardTitle>Login</CardTitle>
+            <CardDescription>Select your role and sign in to your account.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Tabs defaultValue="student" className="w-full">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="student">Student</TabsTrigger>
+                <TabsTrigger value="manager">Manager</TabsTrigger>
+                <TabsTrigger value="admin">Admin</TabsTrigger>
+              </TabsList>
+              <TabsContent value="student" className="pt-4">
+                <LoginForm role="student" />
+              </TabsContent>
+              <TabsContent value="manager" className="pt-4">
+                <LoginForm role="manager" />
+              </TabsContent>
+              <TabsContent value="admin" className="pt-4">
+                <LoginForm role="admin" />
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
+        <div className="mt-4 text-center text-sm">
+          Don't have an account?{' '}
+          <Link to="/register" className="underline text-orange-500 hover:text-orange-600">
+            Register as a Student
+          </Link>
+        </div>
+        <div className="mt-2 text-center text-sm">
+          Are you a guest?{' '}
+          <Link to="/guest-payment" className="underline text-orange-500 hover:text-orange-600">
+            Make a Guest Payment
+          </Link>
+        </div>
       </div>
-    </AppLayout>
-  )
+    </div>
+  );
 }

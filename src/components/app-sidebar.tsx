@@ -1,82 +1,71 @@
 import React from "react";
-import { Home, Layers, Compass, Star, Settings, LifeBuoy } from "lucide-react";
+import {
+  Home, Layers, User, Settings, Utensils, Wallet, MessageSquare, Lightbulb, Shield, FileText, Send, StickyNote
+} from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
   SidebarHeader,
-  SidebarSeparator,
-  SidebarInput,
-  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-  SidebarMenuAction,
-  SidebarMenuBadge,
 } from "@/components/ui/sidebar";
-
+import { useAuthStore } from "@/store/auth";
+import { useLocation } from "react-router-dom";
+const studentNav = [
+  { href: "/student", label: "Dashboard", icon: Home },
+  { href: "/student/menu", label: "Weekly Menu", icon: Utensils },
+  { href: "/student/dues", label: "My Dues", icon: Wallet },
+  { href: "/student/complaints", label: "Complaints", icon: MessageSquare },
+  { href: "/student/suggestions", label: "Suggestions", icon: Lightbulb },
+];
+const managerNav = [
+  { href: "/manager", label: "Dashboard", icon: Home },
+  { href: "/manager/students", label: "Student Management", icon: User },
+  { href: "/manager/menu", label: "Update Menu", icon: Utensils },
+  { href: "/manager/financials", label: "Financials", icon: Wallet },
+  { href: "/manager/feedback", label: "Feedback", icon: MessageSquare },
+  { href: "/manager/broadcast", label: "Broadcast", icon: Send },
+  { href: "/manager/notes", label: "Notes", icon: StickyNote },
+  { href: "/manager/settings", label: "Settings", icon: Settings },
+];
+const adminNav = [
+  { href: "/admin", label: "Dashboard", icon: Shield },
+  { href: "/admin/complaints", label: "All Complaints", icon: FileText },
+];
 export function AppSidebar(): JSX.Element {
+  const user = useAuthStore(s => s.user);
+  const location = useLocation();
+  const getNavItems = () => {
+    switch (user?.role) {
+      case 'student': return studentNav;
+      case 'manager': return managerNav;
+      case 'admin': return adminNav;
+      default: return [];
+    }
+  };
+  const navItems = getNavItems();
   return (
     <Sidebar>
       <SidebarHeader>
         <div className="flex items-center gap-2 px-2 py-1">
-          <div className="h-6 w-6 rounded-md bg-gradient-to-br from-indigo-500 to-purple-500" />
-          <span className="text-sm font-medium">Template</span>
+          <div className="h-8 w-8 center rounded-md bg-gradient-to-br from-orange-500 to-yellow-500 text-white">
+            <Utensils size={18} />
+          </div>
+          <span className="font-display font-semibold text-lg">Mess Connect</span>
         </div>
-        <SidebarInput placeholder="Search" />
       </SidebarHeader>
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive>
-                <a href="#"><Home /> <span>Home</span></a>
+        <SidebarMenu>
+          {navItems.map((item) => (
+            <SidebarMenuItem key={item.href}>
+              <SidebarMenuButton asChild isActive={location.pathname === item.href}>
+                <a href={item.href}><item.icon className="size-4" /> <span>{item.label}</span></a>
               </SidebarMenuButton>
             </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild>
-                <a href="#"><Layers /> <span>Projects</span></a>
-              </SidebarMenuButton>
-              <SidebarMenuAction>
-                <Star className="size-4" />
-              </SidebarMenuAction>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild>
-                <a href="#"><Compass /> <span>Explore</span></a>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarGroup>
-
-        <SidebarSeparator />
-
-        <SidebarGroup>
-          <SidebarGroupLabel>Quick Links</SidebarGroupLabel>
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild>
-                <a href="#"><Star /> <span>Starred</span></a>
-              </SidebarMenuButton>
-              <SidebarMenuBadge>5</SidebarMenuBadge>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild>
-                <a href="#"><LifeBuoy /> <span>Support</span></a>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild>
-                <a href="#"><Settings /> <span>Settings</span></a>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarGroup>
+          ))}
+        </SidebarMenu>
       </SidebarContent>
-      <SidebarFooter>
-        <div className="px-2 text-xs text-muted-foreground">A simple shadcn sidebar</div>
-      </SidebarFooter>
     </Sidebar>
   );
 }

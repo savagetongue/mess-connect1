@@ -9,8 +9,6 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Toaster, toast } from '@/components/ui/sonner';
 import { api } from '@/lib/api-client';
 import { Utensils } from 'lucide-react';
-import { useTranslation } from '@/hooks/use-translation';
-import { motion } from 'framer-motion';
 const registerSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
   email: z.string().email({ message: 'Please enter a valid email.' }),
@@ -18,7 +16,6 @@ const registerSchema = z.object({
   password: z.string().min(6, { message: 'Password must be at least 6 characters.' }),
 });
 export function RegisterPage() {
-  const { t } = useTranslation();
   const navigate = useNavigate();
   const form = useForm<z.infer<typeof registerSchema>>({
     resolver: zodResolver(registerSchema),
@@ -43,25 +40,20 @@ export function RegisterPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
       <Toaster richColors closeButton />
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: "easeOut" }}
-        className="w-full max-w-md"
-      >
+      <div className="w-full max-w-md">
         <div className="text-center mb-8">
-            <div className="inline-block p-3 bg-orange-500 text-white rounded-full shadow-lg shadow-orange-500/50">
+            <div className="inline-block p-3 bg-orange-500 text-white rounded-full">
                 <Utensils className="h-8 w-8" />
             </div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mt-4 font-display">
-                {t('joinMessConnect')}
+                Join Mess Connect
             </h1>
-            <p className="text-gray-600 dark:text-gray-400">{t('createAccountToManage')}</p>
+            <p className="text-gray-600 dark:text-gray-400">Create an account to manage your mess subscription.</p>
         </div>
-        <Card className="shadow-xl">
+        <Card>
           <CardHeader>
-            <CardTitle>{t('register')}</CardTitle>
-            <CardDescription>{t('registerDescription')}</CardDescription>
+            <CardTitle>Register</CardTitle>
+            <CardDescription>Fill in the details below to create your account.</CardDescription>
           </CardHeader>
           <CardContent>
             <Form {...form}>
@@ -71,7 +63,7 @@ export function RegisterPage() {
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('fullName')}</FormLabel>
+                      <FormLabel>Full Name</FormLabel>
                       <FormControl>
                         <Input placeholder="Anand Bhagyawant" {...field} />
                       </FormControl>
@@ -84,7 +76,7 @@ export function RegisterPage() {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('email')}</FormLabel>
+                      <FormLabel>Email</FormLabel>
                       <FormControl>
                         <Input type="email" placeholder="anand@example.com" {...field} />
                       </FormControl>
@@ -97,7 +89,7 @@ export function RegisterPage() {
                   name="phone"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('phone')}</FormLabel>
+                      <FormLabel>Phone Number</FormLabel>
                       <FormControl>
                         <Input placeholder="9876543210" {...field} />
                       </FormControl>
@@ -110,7 +102,7 @@ export function RegisterPage() {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('password')}</FormLabel>
+                      <FormLabel>Password</FormLabel>
                       <FormControl>
                         <Input type="password" placeholder="••••••••" {...field} />
                       </FormControl>
@@ -119,19 +111,19 @@ export function RegisterPage() {
                   )}
                 />
                 <Button type="submit" className="w-full bg-orange-500 hover:bg-orange-600" disabled={form.formState.isSubmitting}>
-                  {form.formState.isSubmitting ? t('registering') : t('createAccount')}
+                  {form.formState.isSubmitting ? 'Registering...' : 'Create Account'}
                 </Button>
               </form>
             </Form>
           </CardContent>
         </Card>
-        <div className="mt-6 text-center text-sm">
-          {t('alreadyAccount')}{' '}
-          <Link to="/" className="font-semibold text-orange-500 hover:text-orange-600 hover:underline">
-            {t('login')}
+        <div className="mt-4 text-center text-sm">
+          Already have an account?{' '}
+          <Link to="/" className="underline text-orange-500 hover:text-orange-600">
+            Login
           </Link>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }
