@@ -16,6 +16,7 @@ import { Utensils } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useTranslation } from 'react-i18next';
 import { LanguageToggle } from '@/components/LanguageToggle';
+import { motion } from 'framer-motion';
 const loginSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email.' }),
   password: z.string().min(1, { message: 'Password is required.' }),
@@ -113,23 +114,33 @@ export function HomePage() {
     }
   }, [isAuthenticated, user, navigate]);
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4 relative">
-      <div className="absolute top-4 right-4 flex items-center gap-2">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4 relative overflow-hidden">
+      <div className="absolute top-4 right-4 flex items-center gap-2 z-20">
         <LanguageToggle />
         <ThemeToggle className="relative top-0 right-0" />
       </div>
       <Toaster richColors closeButton />
-      <div className="w-full max-w-md">
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className="w-full max-w-md z-10"
+      >
         <div className="text-center mb-8">
-            <div className="inline-block p-3 bg-orange-500 text-white rounded-full">
+            <motion.div 
+              initial={{ scale: 0 }}
+              animate={{ scale: 1, rotate: 360 }}
+              transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.2 }}
+              className="inline-block p-3 bg-orange-500 text-white rounded-full shadow-lg shadow-orange-500/50"
+            >
                 <Utensils className="h-8 w-8" />
-            </div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mt-4 font-display">
+            </motion.div>
+            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mt-4 font-display">
                 {t('welcomeToMessConnect')}
             </h1>
             <p className="text-gray-600 dark:text-gray-400">{t('messManagementSolution')}</p>
         </div>
-        <Card>
+        <Card className="shadow-xl">
           <CardHeader>
             <CardTitle>{t('login')}</CardTitle>
             <CardDescription>{t('loginDescription')}</CardDescription>
@@ -153,19 +164,21 @@ export function HomePage() {
             </Tabs>
           </CardContent>
         </Card>
-        <div className="mt-4 text-center text-sm">
-          {t('noAccount')}{' '}
-          <Link to="/register" className="underline text-orange-500 hover:text-orange-600">
-            {t('registerStudent')}
-          </Link>
+        <div className="mt-6 text-center text-sm space-y-2">
+          <p>
+            {t('noAccount')}{' '}
+            <Link to="/register" className="font-semibold text-orange-500 hover:text-orange-600 hover:underline">
+              {t('registerStudent')}
+            </Link>
+          </p>
+          <p>
+            {t('areYouGuest')}{' '}
+            <Link to="/guest-payment" className="font-semibold text-orange-500 hover:text-orange-600 hover:underline">
+              {t('guestPayment')}
+            </Link>
+          </p>
         </div>
-        <div className="mt-2 text-center text-sm">
-          {t('areYouGuest')}{' '}
-          <Link to="/guest-payment" className="underline text-orange-500 hover:text-orange-600">
-            {t('guestPayment')}
-          </Link>
-        </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

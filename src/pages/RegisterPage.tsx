@@ -10,6 +10,7 @@ import { Toaster, toast } from '@/components/ui/sonner';
 import { api } from '@/lib/api-client';
 import { Utensils } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { motion } from 'framer-motion';
 const registerSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
   email: z.string().email({ message: 'Please enter a valid email.' }),
@@ -42,9 +43,14 @@ export function RegisterPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
       <Toaster richColors closeButton />
-      <div className="w-full max-w-md">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className="w-full max-w-md"
+      >
         <div className="text-center mb-8">
-            <div className="inline-block p-3 bg-orange-500 text-white rounded-full">
+            <div className="inline-block p-3 bg-orange-500 text-white rounded-full shadow-lg shadow-orange-500/50">
                 <Utensils className="h-8 w-8" />
             </div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mt-4 font-display">
@@ -52,7 +58,7 @@ export function RegisterPage() {
             </h1>
             <p className="text-gray-600 dark:text-gray-400">{t('createAccountToManage')}</p>
         </div>
-        <Card>
+        <Card className="shadow-xl">
           <CardHeader>
             <CardTitle>{t('register')}</CardTitle>
             <CardDescription>{t('registerDescription')}</CardDescription>
@@ -119,13 +125,13 @@ export function RegisterPage() {
             </Form>
           </CardContent>
         </Card>
-        <div className="mt-4 text-center text-sm">
+        <div className="mt-6 text-center text-sm">
           {t('alreadyAccount')}{' '}
-          <Link to="/" className="underline text-orange-500 hover:text-orange-600">
+          <Link to="/" className="font-semibold text-orange-500 hover:text-orange-600 hover:underline">
             {t('login')}
           </Link>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }
