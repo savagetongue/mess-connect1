@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { useTheme } from '@/components/ThemeProvider';
+import { useTheme } from '@/hooks/useTheme';
 interface ThemeToggleProps {
   className?: string;
 }
