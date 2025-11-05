@@ -4,7 +4,7 @@ import { zValidator } from '@hono/zod-validator';
 import type { Env } from './core-utils';
 import { UserEntity, MenuEntity, ComplaintEntity, SuggestionEntity, SettingsEntity, MonthlyDueEntity, GuestPaymentEntity } from "./entities";
 import { ok, bad, notFound } from './core-utils';
-import type { User, WeeklyMenu, Complaint, Suggestion, MessSettings, MonthlyDue, GuestPayment } from "@shared/types";
+import type { User, WeeklyMenu, Complaint, Suggestion, MessSettings, MonthlyDue, GuestPayment, VerifyPaymentPayload } from "@shared/types";
 import { format } from 'date-fns';
 // A simple placeholder for image uploads. In a real app, use a service like R2.
 const uploadImage = async (file: File): Promise<string> => {
@@ -21,7 +21,7 @@ const verifyPassword = async (password: string, hash: string) => {
     const passwordHash = await hashPassword(password);
     return passwordHash === hash;
 };
-export function userRoutes(app: Hono<{ Bindings: Env }>) {
+export function userRoutes(app: Hono<{ Bindings: Env & { RAZORPAY_KEY_ID: string; RAZORPAY_KEY_SECRET: string } }>) {
   // Middleware to ensure admin and manager exist
   app.use('/api/*', async (c, next) => {
     const adminUser = new UserEntity(c.env, 'admin@messconnect.com');
@@ -71,7 +71,6 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     const studentEntity = new UserEntity(c.env, studentId);
     if (!await studentEntity.exists()) return notFound(c, 'Student not found.');
     await studentEntity.patch({ status });
-    // If student is approved, generate the current month's due if it doesn't exist
     if (status === 'approved') {
         const settingsEntity = new SettingsEntity(c.env, 'settings');
         const settings = await settingsEntity.getState();
@@ -165,7 +164,6 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     return ok(c, await settingsEntity.getState());
   });
   app.get('/api/my-dues', async (c) => {
-    // In a real app, student ID would come from a secure session/token
     const studentId = c.req.query('studentId');
     if (!studentId) return bad(c, 'Student ID is required.');
     const { items } = await MonthlyDueEntity.list(c.env);
@@ -179,19 +177,83 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     ]);
     return ok(c, { dues: duesResult.items, guestPayments: guestPaymentsResult.items });
   });
-  const guestPaymentSchema = z.object({ name: z.string().min(2), phone: z.string().min(10), amount: z.number().min(1) });
-  app.post('/api/guest-payment', zValidator('json', guestPaymentSchema), async (c) => {
-    const { name, phone, amount } = c.req.valid('json');
-    const newPayment: GuestPayment = { id: crypto.randomUUID(), name, phone, amount, createdAt: Date.now() };
-    await GuestPaymentEntity.create(c.env, newPayment);
-    return ok(c, newPayment);
-  });
   app.post('/api/dues/:id/mark-paid', async (c) => {
     const dueId = c.req.param('id');
     const dueEntity = new MonthlyDueEntity(c.env, dueId);
     if (!await dueEntity.exists()) return notFound(c, 'Due record not found.');
     await dueEntity.patch({ status: 'paid' });
     return ok(c, { message: 'Marked as paid.' });
+  });
+  // --- PAYMENT ROUTES ---
+  const createOrderSchema = z.object({
+    amount: z.number().min(1),
+    name: z.string(),
+    email: z.string().email(),
+    phone: z.string(),
+    entityId: z.string(),
+  });
+  app.post('/api/payment/create-order', zValidator('json', createOrderSchema), async (c) => {
+    if (!c.env.RAZORPAY_KEY_ID || !c.env.RAZORPAY_KEY_SECRET) {
+        return bad(c, 'Razorpay credentials are not configured.');
+    }
+    const { amount, entityId } = c.req.valid('json');
+    const options = {
+        amount: amount * 100, // amount in the smallest currency unit
+        currency: "INR",
+        receipt: `receipt_mess_${entityId.substring(0, 10)}_${Date.now()}`
+    };
+    try {
+        const response = await fetch('https://api.razorpay.com/v1/orders', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Basic ' + btoa(`${c.env.RAZORPAY_KEY_ID}:${c.env.RAZORPAY_KEY_SECRET}`)
+            },
+            body: JSON.stringify(options)
+        });
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error("Razorpay Error:", errorText);
+            return bad(c, `Failed to create Razorpay order: ${errorText}`);
+        }
+        const order = await response.json();
+        return ok(c, { orderId: order.id, amount: order.amount, currency: order.currency });
+    } catch (error) {
+        console.error("Create Order Error:", error);
+        return bad(c, 'Could not create payment order.');
+    }
+  });
+  const verifyPaymentSchema = z.object({
+    razorpay_order_id: z.string(),
+    razorpay_payment_id: z.string(),
+    razorpay_signature: z.string(),
+    entityId: z.string(),
+    entityType: z.enum(['due', 'guest']),
+    guestDetails: z.object({ name: z.string(), phone: z.string(), amount: z.number() }).optional(),
+  });
+  app.post('/api/payment/verify', zValidator('json', verifyPaymentSchema), async (c) => {
+    const body = c.req.valid('json');
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, entityId, entityType, guestDetails } = body;
+    const text = `${razorpay_order_id}|${razorpay_payment_id}`;
+    const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(c.env.RAZORPAY_KEY_SECRET), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+    const signature = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(text));
+    const expectedSignature = Array.from(new Uint8Array(signature)).map(b => b.toString(16).padStart(2, '0')).join('');
+    if (expectedSignature === razorpay_signature) {
+        if (entityType === 'due') {
+            const dueEntity = new MonthlyDueEntity(c.env, entityId);
+            if (await dueEntity.exists()) {
+                await dueEntity.patch({ status: 'paid' });
+                return ok(c, { message: 'Payment verified and due updated.' });
+            }
+        } else if (entityType === 'guest' && guestDetails) {
+            const newPayment: GuestPayment = { id: crypto.randomUUID(), ...guestDetails, createdAt: Date.now() };
+            await GuestPaymentEntity.create(c.env, newPayment);
+            return ok(c, { message: 'Payment verified and guest payment recorded.' });
+        }
+        return bad(c, 'Entity not found for payment verification.');
+    } else {
+        return bad(c, 'Payment verification failed.');
+    }
   });
 }
 // Helper to get week number

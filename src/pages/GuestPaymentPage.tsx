@@ -9,6 +9,12 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Toaster, toast } from '@/components/ui/sonner';
 import { api } from '@/lib/api-client';
 import { Utensils } from 'lucide-react';
+import type { CreateOrderResponse } from '@shared/types';
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
 const guestPaymentSchema = z.object({
   name: z.string().min(2, 'Name is required.'),
   phone: z.string().min(10, 'A valid phone number is required.'),
@@ -22,18 +28,57 @@ export function GuestPaymentPage() {
   });
   const onSubmit = async (values: z.infer<typeof guestPaymentSchema>) => {
     try {
-      await api('/api/guest-payment', {
+      const order = await api<CreateOrderResponse>('/api/payment/create-order', {
         method: 'POST',
-        body: JSON.stringify(values),
+        body: JSON.stringify({
+          amount: values.amount,
+          name: values.name,
+          email: 'guest@messconnect.com', // Using a placeholder email for guests
+          phone: values.phone,
+          entityId: `guest_${Date.now()}`,
+        }),
       });
-      toast.success('Payment successful!', {
-        description: 'Thank you for your payment.',
-      });
-      form.reset();
-      setTimeout(() => navigate('/'), 2000);
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+        amount: order.amount,
+        currency: order.currency,
+        name: "Mess Connect (Guest)",
+        description: `Guest meal payment`,
+        order_id: order.orderId,
+        handler: async function (response: any) {
+          try {
+            await api('/api/payment/verify', {
+              method: 'POST',
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                entityId: order.orderId,
+                entityType: 'guest',
+                guestDetails: values,
+              }),
+            });
+            toast.success("Payment Successful!");
+            setTimeout(() => navigate('/'), 2000);
+          } catch (error) {
+            toast.error("Payment verification failed.", {
+              description: error instanceof Error ? error.message : "Please contact support.",
+            });
+          }
+        },
+        prefill: {
+          name: values.name,
+          contact: values.phone,
+        },
+        theme: {
+          color: "#ED8936",
+        },
+      };
+      const rzp = new window.Razorpay(options);
+      rzp.open();
     } catch (error) {
-      toast.error('Payment failed.', {
-        description: error instanceof Error ? error.message : 'An unknown error occurred.',
+      toast.error("Failed to initiate payment.", {
+        description: error instanceof Error ? error.message : "An unknown error occurred.",
       });
     }
   };
@@ -87,10 +132,10 @@ export function GuestPaymentPage() {
                     <FormItem>
                       <FormLabel>Amount</FormLabel>
                       <FormControl>
-                        <Input 
-                          type="number" 
-                          placeholder="Enter amount" 
-                          {...field} 
+                        <Input
+                          type="number"
+                          placeholder="Enter amount"
+                          {...field}
                           onChange={e => field.onChange(e.target.valueAsNumber)}
                         />
                       </FormControl>

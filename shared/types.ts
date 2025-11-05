@@ -71,3 +71,19 @@ export interface MessSettings {
   monthlyFee: number;
   rules: string;
 }
+// Types for Razorpay Integration
+export interface CreateOrderResponse {
+  orderId: string;
+  amount: number; // in paise
+  currency: string;
+  name: string;
+  email: string;
+  phone: string;
+}
+export interface VerifyPaymentPayload {
+  razorpay_order_id: string;
+  razorpay_payment_id: string;
+  razorpay_signature: string;
+  entityId: string; // Can be dueId for students or a temp ID for guests
+  entityType: 'due' | 'guest';
+}
