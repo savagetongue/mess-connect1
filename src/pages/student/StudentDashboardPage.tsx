@@ -6,7 +6,7 @@ import { api } from "@/lib/api-client";
 import type { Broadcast } from "@shared/types";
 import { Megaphone } from "lucide-react";
 import { format } from 'date-fns';
-import { useTranslation } from "@/context/I18nContext";
+import { useTranslation } from "@/hooks/use-translation";
 export function StudentDashboardPage() {
     const { t } = useTranslation();
     const user = useAuthStore(s => s.user);

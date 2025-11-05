@@ -13,7 +13,7 @@ import { api } from "@/lib/api-client";
 import type { Note } from "@shared/types";
 import { Plus, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useTranslation } from '@/context/I18nContext';
+import { useTranslation } from '@/hooks/use-translation';
 import { AnimatePresence, motion } from 'framer-motion';
 const noteSchema = z.object({
   text: z.string().min(1, 'Note cannot be empty.'),

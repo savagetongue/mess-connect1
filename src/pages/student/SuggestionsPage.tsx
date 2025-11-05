@@ -14,7 +14,7 @@ import { useAuthStore } from '@/store/auth';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
-import { useTranslation } from '@/context/I18nContext';
+import { useTranslation } from '@/hooks/use-translation';
 const suggestionSchema = z.object({
   text: z.string().min(10, 'Suggestion must be at least 10 characters long.'),
 });

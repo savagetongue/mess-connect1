@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Image as ImageIcon, Search } from 'lucide-react';
-import { useTranslation } from '@/context/I18nContext';
+import { useTranslation } from '@/hooks/use-translation';
 import { Input } from '@/components/ui/input';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 type FilterStatus = 'all' | 'replied' | 'pending';

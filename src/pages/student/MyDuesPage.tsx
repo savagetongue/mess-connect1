@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuthStore } from '@/store/auth';
-import { useTranslation } from '@/context/I18nContext';
+import { useTranslation } from '@/hooks/use-translation';
 declare global {
   interface Window {
     Razorpay: any;

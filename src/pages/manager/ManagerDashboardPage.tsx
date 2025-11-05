@@ -6,7 +6,7 @@ import { api } from "@/lib/api-client";
 import type { MonthlyDue, GuestPayment } from "@shared/types";
 import { format, getMonth, getYear } from 'date-fns';
 import { IndianRupee, Users, AlertCircle } from "lucide-react";
-import { useTranslation } from "@/context/I18nContext";
+import { useTranslation } from "@/hooks/use-translation";
 export function ManagerDashboardPage() {
     const { t } = useTranslation();
     const user = useAuthStore(s => s.user);

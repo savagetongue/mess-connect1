@@ -11,7 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { toast } from "sonner";
 import { api } from "@/lib/api-client";
 import type { MessSettings } from "@shared/types";
-import { useTranslation } from '@/context/I18nContext';
+import { useTranslation } from '@/hooks/use-translation';
 const settingsSchema = z.object({
   monthlyFee: z.number().min(0, 'Fee must be a positive number.'),
   rules: z.string().optional(),

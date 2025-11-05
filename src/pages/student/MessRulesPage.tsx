@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { api } from "@/lib/api-client";
 import type { MessSettings } from "@shared/types";
 import { Skeleton } from '@/components/ui/skeleton';
-import { useTranslation } from '@/context/I18nContext';
+import { useTranslation } from '@/hooks/use-translation';
 export function MessRulesPage() {
   const { t } = useTranslation();
   const [rules, setRules] = useState<string>('');
