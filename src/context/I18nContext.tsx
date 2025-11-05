@@ -1,6 +1,6 @@
 import React, { createContext, useContext, ReactNode } from 'react';
-import { useTranslation as useOriginalTranslation, TFunction } from 'react-i18next';
-import { i18n as i18nInstance } from 'i18next';
+import { useTranslation as useOriginalTranslation } from 'react-i18next';
+import { i18n as i18nInstance, TFunction } from 'i18next';
 interface I18nContextType {
   i18n: i18nInstance;
   t: TFunction;
