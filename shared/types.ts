@@ -48,6 +48,7 @@ export interface MonthlyDue {
   month: string; // YYYY-MM format
   amount: number;
   status: DueStatus;
+  carriedOverAmount?: number;
 }
 export interface GuestPayment {
   id: string;

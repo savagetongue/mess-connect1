@@ -5,7 +5,7 @@ import type { Env } from './core-utils';
 import { UserEntity, MenuEntity, ComplaintEntity, SuggestionEntity, SettingsEntity, MonthlyDueEntity, GuestPaymentEntity, BroadcastEntity, NoteEntity } from "./entities";
 import { ok, bad, notFound } from './core-utils';
 import type { User, WeeklyMenu, Complaint, Suggestion, MessSettings, MonthlyDue, GuestPayment, VerifyPaymentPayload, Broadcast, Note } from "@shared/types";
-import { format } from 'date-fns';
+import { format, subMonths, getYear, getMonth } from 'date-fns';
 interface RazorpayOrder {
     id: string;
     amount: number;
@@ -131,6 +131,7 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
   app.get('/api/complaints', async (c) => {
     const studentId = c.req.query('studentId');
     const { items } = await ComplaintEntity.list(c.env);
+    // If studentId is provided, filter for that student. Otherwise (for manager/admin), return all.
     const complaints = studentId ? items.filter(item => item.studentId === studentId) : items;
     return ok(c, { complaints });
   });
@@ -179,6 +180,35 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
   app.get('/api/my-dues', async (c) => {
     const studentId = c.req.query('studentId');
     if (!studentId) return bad(c, 'Student ID is required.');
+    const studentEntity = new UserEntity(c.env, studentId);
+    if (!await studentEntity.exists() || (await studentEntity.getState()).status !== 'approved') {
+        return ok(c, { dues: [] });
+    }
+    const now = new Date();
+    const currentMonthStr = format(now, 'yyyy-MM');
+    const currentDueId = `${studentId}:${currentMonthStr}`;
+    const currentDueEntity = new MonthlyDueEntity(c.env, currentDueId);
+    if (!await currentDueEntity.exists()) {
+        const { items: allDues } = await MonthlyDueEntity.list(c.env);
+        const studentDues = allDues.filter(d => d.studentId === studentId);
+        const previousMonth = subMonths(now, 1);
+        const previousMonthStr = format(previousMonth, 'yyyy-MM');
+        const previousDue = studentDues.find(d => d.month === previousMonthStr);
+        let carriedOverAmount = 0;
+        if (previousDue && previousDue.status === 'due') {
+            carriedOverAmount = previousDue.amount;
+        }
+        const settings = await new SettingsEntity(c.env, 'settings').getState();
+        const newDue: MonthlyDue = {
+            id: currentDueId,
+            studentId,
+            month: currentMonthStr,
+            amount: settings.monthlyFee + carriedOverAmount,
+            status: 'due',
+            carriedOverAmount: carriedOverAmount > 0 ? carriedOverAmount : undefined,
+        };
+        await MonthlyDueEntity.create(c.env, newDue);
+    }
     const { items } = await MonthlyDueEntity.list(c.env);
     const dues = items.filter(d => d.studentId === studentId);
     return ok(c, { dues });
@@ -248,7 +278,7 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     const body = c.req.valid('json');
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature, entityId, entityType, guestDetails } = body;
     const text = `${razorpay_order_id}|${razorpay_payment_id}`;
-    const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(c.env.RAZORPAY_KEY_SECRET), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+    const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(c.env.RAZORPAY_KEY_SECRET), { name: 'HMAC', hash: 'SHA-26' }, false, ['sign']);
     const signature = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(text));
     const expectedSignature = Array.from(new Uint8Array(signature)).map(b => b.toString(16).padStart(2, '0')).join('');
     if (expectedSignature === razorpay_signature) {

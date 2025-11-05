@@ -11,6 +11,8 @@ import { format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuthStore } from '@/store/auth';
 import { useTranslation } from '@/hooks/use-translation';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Info } from 'lucide-react';
 declare global {
   interface Window {
     Razorpay: any;
@@ -132,7 +134,24 @@ export function MyDuesPage() {
                   dues.map((due) => (
                     <TableRow key={due.id}>
                       <TableCell className="font-medium">{format(new Date(due.month), 'MMMM yyyy')}</TableCell>
-                      <TableCell>₹{due.amount}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <span>₹{due.amount}</span>
+                          {due.carriedOverAmount && due.carriedOverAmount > 0 && (
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger>
+                                  <Info className="h-4 w-4 text-muted-foreground" />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Current Fee: ₹{due.amount - due.carriedOverAmount}</p>
+                                  <p>Previous Dues: ₹{due.carriedOverAmount}</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          )}
+                        </div>
+                      </TableCell>
                       <TableCell>
                         <Badge variant={due.status === 'paid' ? 'default' : 'destructive'}>
                           {due.status === 'paid' ? t('myDues_paid') : t('myDues_due')}
