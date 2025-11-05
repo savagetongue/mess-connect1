@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { api } from "@/lib/api-client";
 import type { User, UserStatus } from "@shared/types";
 import { Badge } from '@/components/ui/badge';
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from '@/context/I18nContext';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
 export function StudentManagementPage() {

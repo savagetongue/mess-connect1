@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/sidebar";
 import { useAuthStore } from "@/store/auth";
 import { useLocation } from "react-router-dom";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "@/context/I18nContext";
 export function AppSidebar(): JSX.Element {
   const { t } = useTranslation();
   const user = useAuthStore(s => s.user);

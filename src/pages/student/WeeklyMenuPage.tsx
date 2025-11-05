@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { api } from "@/lib/api-client";
 import type { WeeklyMenu } from "@shared/types";
 import { Skeleton } from '@/components/ui/skeleton';
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from '@/context/I18nContext';
 export function WeeklyMenuPage() {
   const { t } = useTranslation();
   const [menu, setMenu] = useState<WeeklyMenu | null>(null);

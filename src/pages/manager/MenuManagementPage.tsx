@@ -10,7 +10,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { toast } from "sonner";
 import { api } from "@/lib/api-client";
 import type { WeeklyMenu, DayMenu } from "@shared/types";
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from '@/context/I18nContext';
 const dayMenuSchema = z.object({
   day: z.enum(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']),
   breakfast: z.string().min(1, 'Required'),

@@ -9,7 +9,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Toaster, toast } from '@/components/ui/sonner';
 import { api } from '@/lib/api-client';
 import { Utensils } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from '@/context/I18nContext';
 import { motion } from 'framer-motion';
 const registerSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),

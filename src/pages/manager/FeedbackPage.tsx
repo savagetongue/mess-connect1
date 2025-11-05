@@ -15,7 +15,7 @@ import type { Complaint, Suggestion } from "@shared/types";
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { Image as ImageIcon } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from '@/context/I18nContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 const replySchema = z.object({
   reply: z.string().min(1, 'Reply cannot be empty.'),

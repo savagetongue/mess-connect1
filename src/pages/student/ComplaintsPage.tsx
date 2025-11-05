@@ -16,7 +16,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { Image as ImageIcon, Paperclip } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from '@/context/I18nContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 const complaintSchema = z.object({
   text: z.string().min(10, 'Complaint must be at least 10 characters long.'),

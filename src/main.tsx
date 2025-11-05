@@ -9,12 +9,15 @@ import '@/index.css'
 import { router } from '@/router';
 import '@/lib/i18n'; // Initialize i18next
 import { Skeleton } from './components/ui/skeleton';
+import { I18nProvider } from './context/I18nContext';
 // Do not touch this code
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <Suspense fallback={<div className="flex h-screen w-screen items-center justify-center"><Skeleton className="h-full w-full" /></div>}>
       <ErrorBoundary>
-        <RouterProvider router={router} />
+        <I18nProvider>
+          <RouterProvider router={router} />
+        </I18nProvider>
       </ErrorBoundary>
     </Suspense>
   </StrictMode>,
