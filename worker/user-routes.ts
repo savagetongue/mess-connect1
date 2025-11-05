@@ -278,7 +278,7 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     const body = c.req.valid('json');
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature, entityId, entityType, guestDetails } = body;
     const text = `${razorpay_order_id}|${razorpay_payment_id}`;
-    const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(c.env.RAZORPAY_KEY_SECRET), { name: 'HMAC', hash: 'SHA-26' }, false, ['sign']);
+    const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(c.env.RAZORPAY_KEY_SECRET), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
     const signature = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(text));
     const expectedSignature = Array.from(new Uint8Array(signature)).map(b => b.toString(16).padStart(2, '0')).join('');
     if (expectedSignature === razorpay_signature) {
