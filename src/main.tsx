@@ -10,7 +10,7 @@ import '@/App.css'
 import { router } from '@/router';
 import '@/lib/i18n'; // Initialize i18next
 import { Skeleton } from './components/ui/skeleton';
-import { I18nProvider } from './context/I18nContext';
+import { I18nProvider } from './components/I18nProvider';
 // Do not touch this code
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
