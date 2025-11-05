@@ -16,14 +16,11 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { Image as ImageIcon, Paperclip } from 'lucide-react';
-import { useTranslation } from '@/hooks/use-translation';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 const complaintSchema = z.object({
   text: z.string().min(10, 'Complaint must be at least 10 characters long.'),
   image: z.instanceof(FileList).optional(),
 });
 export function ComplaintsPage() {
-  const { t } = useTranslation();
   const user = useAuthStore(s => s.user);
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -76,13 +73,13 @@ export function ComplaintsPage() {
     <AppLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold font-display">{t('complaints_title')}</h1>
-          <p className="text-muted-foreground">{t('complaints_description')}</p>
+          <h1 className="text-3xl font-bold font-display">Raise a Complaint</h1>
+          <p className="text-muted-foreground">Have an issue? Let us know, and we'll address it.</p>
         </div>
         <Card>
           <CardHeader>
-            <CardTitle>{t('complaints_newComplaint')}</CardTitle>
-            <CardDescription>{t('complaints_newComplaintDescription')}</CardDescription>
+            <CardTitle>New Complaint</CardTitle>
+            <CardDescription>Please provide as much detail as possible. You can attach one image.</CardDescription>
           </CardHeader>
           <CardContent>
             <Form {...form}>
@@ -92,9 +89,9 @@ export function ComplaintsPage() {
                   name="text"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('complaints_detailsLabel')}</FormLabel>
+                      <FormLabel>Complaint Details</FormLabel>
                       <FormControl>
-                        <Textarea placeholder={t('complaints_detailsPlaceholder')} {...field} rows={5} />
+                        <Textarea placeholder="Describe the issue..." {...field} rows={5} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -105,7 +102,7 @@ export function ComplaintsPage() {
                   name="image"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('complaints_attachImage')}</FormLabel>
+                      <FormLabel>Attach Image (Optional)</FormLabel>
                       <FormControl>
                         <Input type="file" accept="image/*" {...form.register('image')} ref={fileInputRef} />
                       </FormControl>
@@ -114,7 +111,7 @@ export function ComplaintsPage() {
                   )}
                 />
                 <Button type="submit" className="bg-orange-500 hover:bg-orange-600" disabled={form.formState.isSubmitting}>
-                  {form.formState.isSubmitting ? t('complaints_submitting') : t('complaints_submit')}
+                  {form.formState.isSubmitting ? "Submitting..." : "Submit Complaint"}
                 </Button>
               </form>
             </Form>
@@ -122,11 +119,11 @@ export function ComplaintsPage() {
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>{t('complaints_historyTitle')}</CardTitle>
-            <CardDescription>{t('complaints_historyDescription')}</CardDescription>
+            <CardTitle>Your Complaint History</CardTitle>
+            <CardDescription>View your past complaints and manager replies.</CardDescription>
           </CardHeader>
           <CardContent>
-            {isLoading ? <p>{t('complaints_loading')}</p> : complaints.length > 0 ? (
+            {isLoading ? <p>Loading history...</p> : complaints.length > 0 ? (
               <Accordion type="single" collapsible className="w-full">
                 {complaints.map(c => (
                   <AccordionItem value={c.id} key={c.id}>
@@ -135,7 +132,7 @@ export function ComplaintsPage() {
                         <span className="truncate max-w-xs md:max-w-md">{c.text}</span>
                         <div className="flex items-center gap-2">
                           {c.imageUrl && <Paperclip className="h-4 w-4 text-muted-foreground" />}
-                          <Badge variant={c.reply ? "default" : "secondary"}>{c.reply ? t('complaints_replied') : t('complaints_pending')}</Badge>
+                          <Badge variant={c.reply ? "default" : "secondary"}>{c.reply ? "Replied" : "Pending"}</Badge>
                           <span className="text-sm text-muted-foreground hidden md:inline">{format(new Date(c.createdAt), 'PP')}</span>
                         </div>
                       </div>
@@ -143,34 +140,26 @@ export function ComplaintsPage() {
                     <AccordionContent className="space-y-4">
                       <p className="text-muted-foreground whitespace-pre-wrap">{c.text}</p>
                       {c.imageUrl && (
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button variant="link" className="p-0 h-auto inline-flex items-center gap-2 text-sm text-orange-500 hover:underline">
-                              <ImageIcon className="h-4 w-4" /> {t('complaints_viewImage')}
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle>Attached Image</DialogTitle>
-                            </DialogHeader>
-                            <img src={c.imageUrl} alt="Complaint attachment" className="rounded-md max-h-[70vh] object-contain" />
-                          </DialogContent>
-                        </Dialog>
+                        <div className="mt-2">
+                          <a href={c.imageUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm text-orange-500 hover:underline">
+                            <ImageIcon className="h-4 w-4" /> View Attached Image
+                          </a>
+                        </div>
                       )}
                       {c.reply ? (
                         <div className="mt-4 p-4 bg-muted/50 rounded-lg border">
-                          <p className="font-semibold text-sm">{t('complaints_managerReply')}</p>
+                          <p className="font-semibold text-sm">Manager's Reply:</p>
                           <p className="text-muted-foreground text-sm whitespace-pre-wrap">{c.reply}</p>
                         </div>
                       ) : (
-                         <p className="text-sm text-muted-foreground italic">{t('complaints_noReply')}</p>
+                         <p className="text-sm text-muted-foreground italic">No reply from manager yet.</p>
                       )}
                     </AccordionContent>
                   </AccordionItem>
                 ))}
               </Accordion>
             ) : (
-              <p className="text-center text-muted-foreground py-8">{t('complaints_noComplaints')}</p>
+              <p className="text-center text-muted-foreground py-8">You haven't submitted any complaints yet.</p>
             )}
           </CardContent>
         </Card>
