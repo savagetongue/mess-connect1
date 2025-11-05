@@ -5,17 +5,25 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
 import { api } from "@/lib/api-client";
-import type { MonthlyDue } from "@shared/types";
+import type { MonthlyDue, CreateOrderResponse, User } from "@shared/types";
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useAuthStore } from '@/store/auth';
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
 export function MyDuesPage() {
+  const user = useAuthStore(s => s.user);
   const [dues, setDues] = useState<MonthlyDue[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const fetchDues = async () => {
+    if (!user) return;
     setIsLoading(true);
     try {
-      const data = await api<{ dues: MonthlyDue[] }>('/api/my-dues');
+      const data = await api<{ dues: MonthlyDue[] }>(`/api/my-dues?studentId=${user.id}`);
       setDues(data.dues.sort((a, b) => b.month.localeCompare(a.month)));
     } catch (error) {
       toast.error("Failed to fetch your dues.");
@@ -25,19 +33,66 @@ export function MyDuesPage() {
   };
   useEffect(() => {
     fetchDues();
-  }, []);
-  const handlePayNow = (due: MonthlyDue) => {
-    // This is a placeholder for a real payment integration like Razorpay
-    toast.info("Payment processing...", {
-      description: `Processing payment of ₹${due.amount} for ${format(new Date(due.month), 'MMMM yyyy')}.`,
-    });
-    // Simulate API call
-    setTimeout(() => {
-      toast.success("Payment Successful!", {
-        description: "Your payment has been recorded.",
+  }, [user]);
+  const handlePayNow = async (due: MonthlyDue) => {
+    if (!user) {
+      toast.error("You must be logged in to pay.");
+      return;
+    }
+    try {
+      const order = await api<CreateOrderResponse>('/api/payment/create-order', {
+        method: 'POST',
+        body: JSON.stringify({
+          amount: due.amount,
+          name: user.name,
+          email: user.id,
+          phone: user.phone,
+          entityId: due.id,
+        }),
       });
-      // In a real app, you'd refetch or update state based on a successful payment callback
-    }, 2000);
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+        amount: order.amount,
+        currency: order.currency,
+        name: "Mess Connect",
+        description: `Payment for ${format(new Date(due.month), 'MMMM yyyy')}`,
+        order_id: order.orderId,
+        handler: async function (response: any) {
+          try {
+            await api('/api/payment/verify', {
+              method: 'POST',
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                entityId: due.id,
+                entityType: 'due',
+              }),
+            });
+            toast.success("Payment Successful!");
+            fetchDues();
+          } catch (error) {
+            toast.error("Payment verification failed.", {
+              description: error instanceof Error ? error.message : "Please contact support.",
+            });
+          }
+        },
+        prefill: {
+          name: user.name,
+          email: user.id,
+          contact: user.phone,
+        },
+        theme: {
+          color: "#ED8936",
+        },
+      };
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+    } catch (error) {
+      toast.error("Failed to initiate payment.", {
+        description: error instanceof Error ? error.message : "An unknown error occurred.",
+      });
+    }
   };
   return (
     <AppLayout>
