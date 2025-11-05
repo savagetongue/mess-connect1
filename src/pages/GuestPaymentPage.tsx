@@ -10,6 +10,7 @@ import { Toaster, toast } from '@/components/ui/sonner';
 import { api } from '@/lib/api-client';
 import { Utensils } from 'lucide-react';
 import type { CreateOrderResponse } from '@shared/types';
+import { useTranslation } from 'react-i18next';
 declare global {
   interface Window {
     Razorpay: any;
@@ -21,6 +22,7 @@ const guestPaymentSchema = z.object({
   amount: z.number().min(1, 'Amount must be at least 1.'),
 });
 export function GuestPaymentPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const form = useForm<z.infer<typeof guestPaymentSchema>>({
     resolver: zodResolver(guestPaymentSchema),
@@ -91,14 +93,14 @@ export function GuestPaymentPage() {
                 <Utensils className="h-8 w-8" />
             </div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mt-4 font-display">
-                Guest Meal Payment
+                {t('guestMealPayment')}
             </h1>
-            <p className="text-gray-600 dark:text-gray-400">Make a one-time payment for your meal.</p>
+            <p className="text-gray-600 dark:text-gray-400">{t('oneTimePayment')}</p>
         </div>
         <Card>
           <CardHeader>
-            <CardTitle>Payment Details</CardTitle>
-            <CardDescription>Enter your details to proceed with the payment.</CardDescription>
+            <CardTitle>{t('paymentDetails')}</CardTitle>
+            <CardDescription>{t('paymentDetailsDescription')}</CardDescription>
           </CardHeader>
           <CardContent>
             <Form {...form}>
@@ -108,7 +110,7 @@ export function GuestPaymentPage() {
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Full Name</FormLabel>
+                      <FormLabel>{t('fullName')}</FormLabel>
                       <FormControl><Input placeholder="Anand Bhagyawant" {...field} /></FormControl>
                       <FormMessage />
                     </FormItem>
@@ -119,7 +121,7 @@ export function GuestPaymentPage() {
                   name="phone"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Phone Number</FormLabel>
+                      <FormLabel>{t('phone')}</FormLabel>
                       <FormControl><Input placeholder="9876543210" {...field} /></FormControl>
                       <FormMessage />
                     </FormItem>
@@ -130,7 +132,7 @@ export function GuestPaymentPage() {
                   name="amount"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Amount</FormLabel>
+                      <FormLabel>{t('amount')}</FormLabel>
                       <FormControl>
                         <Input
                           type="number"
@@ -144,7 +146,7 @@ export function GuestPaymentPage() {
                   )}
                 />
                 <Button type="submit" className="w-full bg-orange-500 hover:bg-orange-600" disabled={form.formState.isSubmitting}>
-                  {form.formState.isSubmitting ? 'Processing...' : 'Pay Now'}
+                  {form.formState.isSubmitting ? t('processing') : t('payNow')}
                 </Button>
               </form>
             </Form>
@@ -152,7 +154,7 @@ export function GuestPaymentPage() {
         </Card>
         <div className="mt-4 text-center text-sm">
           <Link to="/" className="underline text-orange-500 hover:text-orange-600">
-            Back to Login
+            {t('backToLogin')}
           </Link>
         </div>
       </div>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -14,12 +14,15 @@ import { useAuthStore } from '@/store/auth';
 import type { User, UserRole } from '@shared/types';
 import { Utensils } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { useTranslation } from 'react-i18next';
+import { LanguageToggle } from '@/components/LanguageToggle';
 const loginSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email.' }),
   password: z.string().min(1, { message: 'Password is required.' }),
 });
 type LoginFormValues = z.infer<typeof loginSchema>;
 const LoginForm = ({ role }: { role: UserRole }) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const login = useAuthStore((s) => s.login);
   const form = useForm<LoginFormValues>({
@@ -62,7 +65,7 @@ const LoginForm = ({ role }: { role: UserRole }) => {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel>{t('email')}</FormLabel>
               <FormControl>
                 <Input type="email" placeholder="anand@example.com" {...field} />
               </FormControl>
@@ -75,7 +78,7 @@ const LoginForm = ({ role }: { role: UserRole }) => {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Password</FormLabel>
+              <FormLabel>{t('password')}</FormLabel>
               <FormControl>
                 <Input type="password" placeholder="••••••••" {...field} />
               </FormControl>
@@ -84,13 +87,14 @@ const LoginForm = ({ role }: { role: UserRole }) => {
           )}
         />
         <Button type="submit" className="w-full bg-orange-500 hover:bg-orange-600" disabled={form.formState.isSubmitting}>
-          {form.formState.isSubmitting ? 'Signing In...' : 'Sign In'}
+          {form.formState.isSubmitting ? t('signingIn') : t('signIn')}
         </Button>
       </form>
     </Form>
   );
 };
 export function HomePage() {
+  const { t } = useTranslation();
   const isAuthenticated = useAuthStore(s => s.isAuthenticated);
   const user = useAuthStore(s => s.user);
   const navigate = useNavigate();
@@ -110,7 +114,10 @@ export function HomePage() {
   }, [isAuthenticated, user, navigate]);
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4 relative">
-      <ThemeToggle className="absolute top-4 right-4" />
+      <div className="absolute top-4 right-4 flex items-center gap-2">
+        <LanguageToggle />
+        <ThemeToggle className="relative top-0 right-0" />
+      </div>
       <Toaster richColors closeButton />
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
@@ -118,21 +125,21 @@ export function HomePage() {
                 <Utensils className="h-8 w-8" />
             </div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mt-4 font-display">
-                Welcome to Mess Connect
+                {t('welcomeToMessConnect')}
             </h1>
-            <p className="text-gray-600 dark:text-gray-400">Your one-stop solution for mess management.</p>
+            <p className="text-gray-600 dark:text-gray-400">{t('messManagementSolution')}</p>
         </div>
         <Card>
           <CardHeader>
-            <CardTitle>Login</CardTitle>
-            <CardDescription>Select your role and sign in to your account.</CardDescription>
+            <CardTitle>{t('login')}</CardTitle>
+            <CardDescription>{t('loginDescription')}</CardDescription>
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="student" className="w-full">
               <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="student">Student</TabsTrigger>
-                <TabsTrigger value="manager">Manager</TabsTrigger>
-                <TabsTrigger value="admin">Admin</TabsTrigger>
+                <TabsTrigger value="student">{t('student')}</TabsTrigger>
+                <TabsTrigger value="manager">{t('manager')}</TabsTrigger>
+                <TabsTrigger value="admin">{t('admin')}</TabsTrigger>
               </TabsList>
               <TabsContent value="student" className="pt-4">
                 <LoginForm role="student" />
@@ -147,15 +154,15 @@ export function HomePage() {
           </CardContent>
         </Card>
         <div className="mt-4 text-center text-sm">
-          Don't have an account?{' '}
+          {t('noAccount')}{' '}
           <Link to="/register" className="underline text-orange-500 hover:text-orange-600">
-            Register as a Student
+            {t('registerStudent')}
           </Link>
         </div>
         <div className="mt-2 text-center text-sm">
-          Are you a guest?{' '}
+          {t('areYouGuest')}{' '}
           <Link to="/guest-payment" className="underline text-orange-500 hover:text-orange-600">
-            Make a Guest Payment
+            {t('guestPayment')}
           </Link>
         </div>
       </div>

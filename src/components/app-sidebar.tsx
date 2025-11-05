@@ -12,31 +12,33 @@ import {
 } from "@/components/ui/sidebar";
 import { useAuthStore } from "@/store/auth";
 import { useLocation } from "react-router-dom";
-const studentNav = [
-  { href: "/student", label: "Dashboard", icon: Home },
-  { href: "/student/menu", label: "Weekly Menu", icon: Utensils },
-  { href: "/student/dues", label: "My Dues", icon: Wallet },
-  { href: "/student/complaints", label: "Complaints", icon: MessageSquare },
-  { href: "/student/suggestions", label: "Suggestions", icon: Lightbulb },
-  { href: "/student/rules", label: "Mess Rules", icon: FileText },
-];
-const managerNav = [
-  { href: "/manager", label: "Dashboard", icon: Home },
-  { href: "/manager/students", label: "Student Management", icon: User },
-  { href: "/manager/menu", label: "Update Menu", icon: Utensils },
-  { href: "/manager/financials", label: "Financials", icon: Wallet },
-  { href: "/manager/feedback", label: "Feedback", icon: MessageSquare },
-  { href: "/manager/broadcast", label: "Broadcast", icon: Send },
-  { href: "/manager/notes", label: "Notes", icon: StickyNote },
-  { href: "/manager/settings", label: "Settings", icon: Settings },
-];
-const adminNav = [
-  { href: "/admin", label: "Dashboard", icon: Shield },
-  { href: "/admin/complaints", label: "All Complaints", icon: FileText },
-];
+import { useTranslation } from "react-i18next";
 export function AppSidebar(): JSX.Element {
+  const { t } = useTranslation();
   const user = useAuthStore(s => s.user);
   const location = useLocation();
+  const studentNav = [
+    { href: "/student", label: t('sidebar_dashboard'), icon: Home },
+    { href: "/student/menu", label: t('sidebar_weeklyMenu'), icon: Utensils },
+    { href: "/student/dues", label: t('sidebar_myDues'), icon: Wallet },
+    { href: "/student/complaints", label: t('sidebar_complaints'), icon: MessageSquare },
+    { href: "/student/suggestions", label: t('sidebar_suggestions'), icon: Lightbulb },
+    { href: "/student/rules", label: t('sidebar_messRules'), icon: FileText },
+  ];
+  const managerNav = [
+    { href: "/manager", label: t('sidebar_dashboard'), icon: Home },
+    { href: "/manager/students", label: t('sidebar_studentManagement'), icon: User },
+    { href: "/manager/menu", label: t('sidebar_updateMenu'), icon: Utensils },
+    { href: "/manager/financials", label: t('sidebar_financials'), icon: Wallet },
+    { href: "/manager/feedback", label: t('sidebar_feedback'), icon: MessageSquare },
+    { href: "/manager/broadcast", label: t('sidebar_broadcast'), icon: Send },
+    { href: "/manager/notes", label: t('sidebar_notes'), icon: StickyNote },
+    { href: "/manager/settings", label: t('sidebar_settings'), icon: Settings },
+  ];
+  const adminNav = [
+    { href: "/admin", label: t('sidebar_adminDashboard'), icon: Shield },
+    { href: "/admin/complaints", label: t('sidebar_allComplaints'), icon: FileText },
+  ];
   const getNavItems = () => {
     switch (user?.role) {
       case 'student': return studentNav;
