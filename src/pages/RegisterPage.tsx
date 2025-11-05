@@ -9,6 +9,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Toaster, toast } from '@/components/ui/sonner';
 import { api } from '@/lib/api-client';
 import { Utensils } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 const registerSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
   email: z.string().email({ message: 'Please enter a valid email.' }),
@@ -16,6 +17,7 @@ const registerSchema = z.object({
   password: z.string().min(6, { message: 'Password must be at least 6 characters.' }),
 });
 export function RegisterPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const form = useForm<z.infer<typeof registerSchema>>({
     resolver: zodResolver(registerSchema),
@@ -46,14 +48,14 @@ export function RegisterPage() {
                 <Utensils className="h-8 w-8" />
             </div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mt-4 font-display">
-                Join Mess Connect
+                {t('joinMessConnect')}
             </h1>
-            <p className="text-gray-600 dark:text-gray-400">Create an account to manage your mess subscription.</p>
+            <p className="text-gray-600 dark:text-gray-400">{t('createAccountToManage')}</p>
         </div>
         <Card>
           <CardHeader>
-            <CardTitle>Register</CardTitle>
-            <CardDescription>Fill in the details below to create your account.</CardDescription>
+            <CardTitle>{t('register')}</CardTitle>
+            <CardDescription>{t('registerDescription')}</CardDescription>
           </CardHeader>
           <CardContent>
             <Form {...form}>
@@ -63,7 +65,7 @@ export function RegisterPage() {
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Full Name</FormLabel>
+                      <FormLabel>{t('fullName')}</FormLabel>
                       <FormControl>
                         <Input placeholder="Anand Bhagyawant" {...field} />
                       </FormControl>
@@ -76,7 +78,7 @@ export function RegisterPage() {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Email</FormLabel>
+                      <FormLabel>{t('email')}</FormLabel>
                       <FormControl>
                         <Input type="email" placeholder="anand@example.com" {...field} />
                       </FormControl>
@@ -89,7 +91,7 @@ export function RegisterPage() {
                   name="phone"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Phone Number</FormLabel>
+                      <FormLabel>{t('phone')}</FormLabel>
                       <FormControl>
                         <Input placeholder="9876543210" {...field} />
                       </FormControl>
@@ -102,7 +104,7 @@ export function RegisterPage() {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Password</FormLabel>
+                      <FormLabel>{t('password')}</FormLabel>
                       <FormControl>
                         <Input type="password" placeholder="••••••••" {...field} />
                       </FormControl>
@@ -111,16 +113,16 @@ export function RegisterPage() {
                   )}
                 />
                 <Button type="submit" className="w-full bg-orange-500 hover:bg-orange-600" disabled={form.formState.isSubmitting}>
-                  {form.formState.isSubmitting ? 'Registering...' : 'Create Account'}
+                  {form.formState.isSubmitting ? t('registering') : t('createAccount')}
                 </Button>
               </form>
             </Form>
           </CardContent>
         </Card>
         <div className="mt-4 text-center text-sm">
-          Already have an account?{' '}
+          {t('alreadyAccount')}{' '}
           <Link to="/" className="underline text-orange-500 hover:text-orange-600">
-            Login
+            {t('login')}
           </Link>
         </div>
       </div>

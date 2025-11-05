@@ -7,6 +7,7 @@ import { Button } from "../ui/button";
 import { useNavigate } from "react-router-dom";
 import { LogOut } from "lucide-react";
 import { ThemeToggle } from "../ThemeToggle";
+import { LanguageToggle } from "../LanguageToggle";
 type AppLayoutProps = {
   children: React.ReactNode;
   className?: string;
@@ -30,6 +31,7 @@ export function AppLayout({ children, className }: AppLayoutProps): JSX.Element 
             <div className="flex-1">
               {/* Header content can go here */}
             </div>
+            <LanguageToggle />
             <ThemeToggle className="relative top-0 right-0" />
             <Button variant="ghost" size="icon" onClick={handleLogout}>
               <LogOut className="h-5 w-5" />
