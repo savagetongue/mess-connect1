@@ -6,7 +6,9 @@ import { toast } from "sonner";
 import { api } from "@/lib/api-client";
 import type { WeeklyMenu } from "@shared/types";
 import { Skeleton } from '@/components/ui/skeleton';
+import { useTranslation } from 'react-i18next';
 export function WeeklyMenuPage() {
+  const { t } = useTranslation();
   const [menu, setMenu] = useState<WeeklyMenu | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   useEffect(() => {
@@ -29,22 +31,22 @@ export function WeeklyMenuPage() {
     <AppLayout>
       <div className="space-y-6">
         <div>
-            <h1 className="text-3xl font-bold font-display">Weekly Menu</h1>
-            <p className="text-muted-foreground">Here is the food menu for the upcoming week.</p>
+            <h1 className="text-3xl font-bold font-display">{t('weeklyMenu_title')}</h1>
+            <p className="text-muted-foreground">{t('weeklyMenu_description')}</p>
         </div>
         <Card>
           <CardHeader>
-            <CardTitle>This Week's Menu</CardTitle>
-            <CardDescription>Bon appétit!</CardDescription>
+            <CardTitle>{t('weeklyMenu_cardTitle')}</CardTitle>
+            <CardDescription>{t('weeklyMenu_cardDescription')}</CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[120px]">Day</TableHead>
-                  <TableHead>Breakfast</TableHead>
-                  <TableHead>Lunch</TableHead>
-                  <TableHead>Dinner</TableHead>
+                  <TableHead className="w-[120px]">{t('weeklyMenu_day')}</TableHead>
+                  <TableHead>{t('weeklyMenu_breakfast')}</TableHead>
+                  <TableHead>{t('weeklyMenu_lunch')}</TableHead>
+                  <TableHead>{t('weeklyMenu_dinner')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -69,7 +71,7 @@ export function WeeklyMenuPage() {
                 ) : (
                   <TableRow>
                     <TableCell colSpan={4} className="text-center h-24">
-                      The menu for this week has not been set yet.
+                      {t('weeklyMenu_notSet')}
                     </TableCell>
                   </TableRow>
                 )}

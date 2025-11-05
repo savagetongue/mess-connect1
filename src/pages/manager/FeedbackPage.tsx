@@ -15,10 +15,12 @@ import type { Complaint, Suggestion } from "@shared/types";
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { Image as ImageIcon } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 const replySchema = z.object({
   reply: z.string().min(1, 'Reply cannot be empty.'),
 });
 const ReplyForm = ({ id, type, onReplied }: { id: string, type: 'complaint' | 'suggestion', onReplied: () => void }) => {
+  const { t } = useTranslation();
   const form = useForm<z.infer<typeof replySchema>>({
     resolver: zodResolver(replySchema),
     defaultValues: { reply: '' },
@@ -48,18 +50,19 @@ const ReplyForm = ({ id, type, onReplied }: { id: string, type: 'complaint' | 's
             <FormItem className="flex-1">
               <FormLabel className="sr-only">Reply</FormLabel>
               <FormControl>
-                <Textarea placeholder="Type your reply here..." {...field} />
+                <Textarea placeholder={t('feedback_replyPlaceholder')} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-        <Button type="submit" className="mt-2" disabled={form.formState.isSubmitting}>Send</Button>
+        <Button type="submit" className="mt-2" disabled={form.formState.isSubmitting}>{t('feedback_send')}</Button>
       </form>
     </Form>
   );
 };
 export function FeedbackPage() {
+  const { t } = useTranslation();
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -85,19 +88,19 @@ export function FeedbackPage() {
     <AppLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold font-display">Student Feedback</h1>
-          <p className="text-muted-foreground">Review and respond to student complaints and suggestions.</p>
+          <h1 className="text-3xl font-bold font-display">{t('feedback_title')}</h1>
+          <p className="text-muted-foreground">{t('feedback_description')}</p>
         </div>
         <Tabs defaultValue="complaints">
           <TabsList>
-            <TabsTrigger value="complaints">Complaints</TabsTrigger>
-            <TabsTrigger value="suggestions">Suggestions</TabsTrigger>
+            <TabsTrigger value="complaints">{t('feedback_complaints')}</TabsTrigger>
+            <TabsTrigger value="suggestions">{t('feedback_suggestions')}</TabsTrigger>
           </TabsList>
           <TabsContent value="complaints">
             <Card>
               <CardHeader>
-                <CardTitle>Complaints</CardTitle>
-                <CardDescription>Address issues raised by students.</CardDescription>
+                <CardTitle>{t('feedback_complaintsTitle')}</CardTitle>
+                <CardDescription>{t('feedback_complaintsDescription')}</CardDescription>
               </CardHeader>
               <CardContent>
                 {isLoading ? <p>Loading complaints...</p> : complaints.length > 0 ? (
@@ -111,7 +114,7 @@ export function FeedbackPage() {
                                 <p className="text-sm text-muted-foreground truncate max-w-xs md:max-w-md">{c.text}</p>
                             </div>
                             <div className="flex items-center gap-2">
-                                <Badge variant={c.reply ? "default" : "destructive"}>{c.reply ? "Replied" : "Needs Reply"}</Badge>
+                                <Badge variant={c.reply ? "default" : "destructive"}>{c.reply ? t('complaints_replied') : t('feedback_needsReply')}</Badge>
                                 <span className="text-sm text-muted-foreground hidden md:inline">{format(new Date(c.createdAt), 'PP')}</span>
                             </div>
                           </div>
@@ -120,12 +123,12 @@ export function FeedbackPage() {
                           <p className="text-muted-foreground whitespace-pre-wrap">{c.text}</p>
                           {c.imageUrl && (
                             <a href={c.imageUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm text-orange-500 hover:underline">
-                                <ImageIcon className="h-4 w-4" /> View Attached Image
+                                <ImageIcon className="h-4 w-4" /> {t('complaints_viewImage')}
                             </a>
                           )}
                           {c.reply ? (
                             <div className="p-4 bg-muted/50 rounded-lg border">
-                              <p className="font-semibold text-sm">Your Reply:</p>
+                              <p className="font-semibold text-sm">{t('feedback_yourReply')}</p>
                               <p className="text-muted-foreground text-sm whitespace-pre-wrap">{c.reply}</p>
                             </div>
                           ) : (
@@ -135,15 +138,15 @@ export function FeedbackPage() {
                       </AccordionItem>
                     ))}
                   </Accordion>
-                ) : <p className="text-center text-muted-foreground py-8">No complaints found.</p>}
+                ) : <p className="text-center text-muted-foreground py-8">{t('feedback_noComplaints')}</p>}
               </CardContent>
             </Card>
           </TabsContent>
           <TabsContent value="suggestions">
              <Card>
               <CardHeader>
-                <CardTitle>Suggestions</CardTitle>
-                <CardDescription>Review ideas from students.</CardDescription>
+                <CardTitle>{t('feedback_suggestionsTitle')}</CardTitle>
+                <CardDescription>{t('feedback_suggestionsDescription')}</CardDescription>
               </CardHeader>
               <CardContent>
                 {isLoading ? <p>Loading suggestions...</p> : suggestions.length > 0 ? (
@@ -157,7 +160,7 @@ export function FeedbackPage() {
                                 <p className="text-sm text-muted-foreground truncate max-w-xs md:max-w-md">{s.text}</p>
                             </div>
                             <div className="flex items-center gap-2">
-                                <Badge variant={s.reply ? "default" : "secondary"}>{s.reply ? "Replied" : "Pending"}</Badge>
+                                <Badge variant={s.reply ? "default" : "secondary"}>{s.reply ? t('complaints_replied') : t('complaints_pending')}</Badge>
                                 <span className="text-sm text-muted-foreground hidden md:inline">{format(new Date(s.createdAt), 'PP')}</span>
                             </div>
                           </div>
@@ -166,7 +169,7 @@ export function FeedbackPage() {
                           <p className="text-muted-foreground whitespace-pre-wrap">{s.text}</p>
                           {s.reply ? (
                             <div className="p-4 bg-muted/50 rounded-lg border">
-                              <p className="font-semibold text-sm">Your Reply:</p>
+                              <p className="font-semibold text-sm">{t('feedback_yourReply')}</p>
                               <p className="text-muted-foreground text-sm whitespace-pre-wrap">{s.reply}</p>
                             </div>
                           ) : (
@@ -176,7 +179,7 @@ export function FeedbackPage() {
                       </AccordionItem>
                     ))}
                   </Accordion>
-                ) : <p className="text-center text-muted-foreground py-8">No suggestions found.</p>}
+                ) : <p className="text-center text-muted-foreground py-8">{t('feedback_noSuggestions')}</p>}
               </CardContent>
             </Card>
           </TabsContent>

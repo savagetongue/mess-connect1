@@ -5,7 +5,9 @@ import { toast } from "sonner";
 import { api } from "@/lib/api-client";
 import type { MessSettings } from "@shared/types";
 import { Skeleton } from '@/components/ui/skeleton';
+import { useTranslation } from 'react-i18next';
 export function MessRulesPage() {
+  const { t } = useTranslation();
   const [rules, setRules] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
   useEffect(() => {
@@ -26,13 +28,13 @@ export function MessRulesPage() {
     <AppLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold font-display">Mess Rules</h1>
-          <p className="text-muted-foreground">Please adhere to the following rules and regulations.</p>
+          <h1 className="text-3xl font-bold font-display">{t('messRules_title')}</h1>
+          <p className="text-muted-foreground">{t('messRules_description')}</p>
         </div>
         <Card>
           <CardHeader>
-            <CardTitle>Rules and Regulations</CardTitle>
-            <CardDescription>Last updated by the manager.</CardDescription>
+            <CardTitle>{t('messRules_cardTitle')}</CardTitle>
+            <CardDescription>{t('messRules_cardDescription')}</CardDescription>
           </CardHeader>
           <CardContent>
             {isLoading ? (
@@ -47,7 +49,7 @@ export function MessRulesPage() {
               </div>
             ) : (
               <p className="text-center text-muted-foreground py-8">
-                No mess rules have been set by the manager yet.
+                {t('messRules_noRules')}
               </p>
             )}
           </CardContent>
