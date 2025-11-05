@@ -40,8 +40,10 @@ export function AppLayout({ children, className }: AppLayoutProps): JSX.Element 
               </Button>
             </div>
           </header>
-          <main className={"flex-1 p-4 sm:p-6 lg:p-8" + (className ? ` ${className}` : "")}>
-            {children}
+          <main className={"flex-1" + (className ? ` ${className}` : "")}>
+            <div className="-m-4 sm:-m-6 lg:-m-8 p-4 sm:p-6 lg:p-8">
+              {children}
+            </div>
           </main>
         </SidebarInset>
         <Toaster richColors closeButton />
