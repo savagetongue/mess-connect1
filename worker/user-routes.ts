@@ -13,12 +13,19 @@ interface RazorpayOrder {
 }
 // In a real app, use a service like R2. For now, encode as base64.
 const uploadImage = async (file: File): Promise<string> => {
+  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+  if (file.size > MAX_FILE_SIZE) {
+    // This will be caught by the global error handler and result in a 500.
+    // A more specific error handling middleware could return a 413 Payload Too Large.
+    throw new Error('File size exceeds the 5MB limit.');
+  }
   const arrayBuffer = await file.arrayBuffer();
   const bytes = new Uint8Array(arrayBuffer);
   let binary = '';
-  const len = bytes.byteLength;
-  for (let i = 0; i < len; i++) {
-    binary += String.fromCharCode(bytes[i]);
+  const CHUNK_SIZE = 8192;
+  for (let i = 0; i < bytes.length; i += CHUNK_SIZE) {
+    const chunk = bytes.subarray(i, i + CHUNK_SIZE);
+    binary += String.fromCharCode.apply(null, chunk as unknown as number[]);
   }
   const base64 = btoa(binary);
   return `data:${file.type};base64,${base64}`;
