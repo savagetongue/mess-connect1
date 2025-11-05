@@ -9,7 +9,9 @@ import { api } from "@/lib/api-client";
 import type { MonthlyDue, GuestPayment, User } from "@shared/types";
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 export function FinancialsPage() {
+  const { t } = useTranslation();
   const [dues, setDues] = useState<MonthlyDue[]>([]);
   const [guestPayments, setGuestPayments] = useState<GuestPayment[]>([]);
   const [students, setStudents] = useState<User[]>([]);
@@ -49,29 +51,29 @@ export function FinancialsPage() {
     <AppLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold font-display">Financials</h1>
-          <p className="text-muted-foreground">Track student dues and guest payments.</p>
+          <h1 className="text-3xl font-bold font-display">{t('financials_title')}</h1>
+          <p className="text-muted-foreground">{t('financials_description')}</p>
         </div>
         <Tabs defaultValue="dues">
           <TabsList>
-            <TabsTrigger value="dues">Student Dues</TabsTrigger>
-            <TabsTrigger value="guests">Guest Payments</TabsTrigger>
+            <TabsTrigger value="dues">{t('financials_duesTab')}</TabsTrigger>
+            <TabsTrigger value="guests">{t('financials_guestsTab')}</TabsTrigger>
           </TabsList>
           <TabsContent value="dues">
             <Card>
               <CardHeader>
-                <CardTitle>Student Dues</CardTitle>
-                <CardDescription>Manage and track monthly payments from all students.</CardDescription>
+                <CardTitle>{t('financials_duesTitle')}</CardTitle>
+                <CardDescription>{t('financials_duesDescription')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Student</TableHead>
-                      <TableHead>Month</TableHead>
-                      <TableHead>Amount</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="text-right">Action</TableHead>
+                      <TableHead>{t('financials_student')}</TableHead>
+                      <TableHead>{t('financials_month')}</TableHead>
+                      <TableHead>{t('financials_amount')}</TableHead>
+                      <TableHead>{t('financials_status')}</TableHead>
+                      <TableHead className="text-right">{t('financials_action')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -85,20 +87,20 @@ export function FinancialsPage() {
                           <TableCell>₹{due.amount}</TableCell>
                           <TableCell>
                             <Badge variant={due.status === 'paid' ? 'default' : 'destructive'}>
-                              {due.status === 'paid' ? 'Paid' : 'Due'}
+                              {due.status === 'paid' ? t('myDues_paid') : t('myDues_due')}
                             </Badge>
                           </TableCell>
                           <TableCell className="text-right">
                             {due.status === 'due' && (
                               <Button size="sm" variant="outline" onClick={() => handleMarkAsPaid(due.id)}>
-                                Mark as Paid (Cash)
+                                {t('financials_markPaid')}
                               </Button>
                             )}
                           </TableCell>
                         </TableRow>
                       ))
                     ) : (
-                      <TableRow><TableCell colSpan={5} className="text-center">No student dues found.</TableCell></TableRow>
+                      <TableRow><TableCell colSpan={5} className="text-center">{t('financials_noDues')}</TableCell></TableRow>
                     )}
                   </TableBody>
                 </Table>
@@ -108,17 +110,17 @@ export function FinancialsPage() {
           <TabsContent value="guests">
             <Card>
               <CardHeader>
-                <CardTitle>Guest Payments</CardTitle>
-                <CardDescription>A log of all one-time payments made by guests.</CardDescription>
+                <CardTitle>{t('financials_guestsTitle')}</CardTitle>
+                <CardDescription>{t('financials_guestsDescription')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Phone</TableHead>
-                      <TableHead>Amount</TableHead>
-                      <TableHead>Date</TableHead>
+                      <TableHead>{t('financials_guestName')}</TableHead>
+                      <TableHead>{t('financials_guestPhone')}</TableHead>
+                      <TableHead>{t('financials_guestAmount')}</TableHead>
+                      <TableHead>{t('financials_guestDate')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -134,7 +136,7 @@ export function FinancialsPage() {
                         </TableRow>
                       ))
                     ) : (
-                      <TableRow><TableCell colSpan={4} className="text-center">No guest payments found.</TableCell></TableRow>
+                      <TableRow><TableCell colSpan={4} className="text-center">{t('financials_noGuests')}</TableCell></TableRow>
                     )}
                   </TableBody>
                 </Table>

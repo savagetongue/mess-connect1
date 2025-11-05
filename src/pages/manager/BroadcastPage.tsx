@@ -12,10 +12,12 @@ import { api } from "@/lib/api-client";
 import type { Broadcast } from "@shared/types";
 import { format } from 'date-fns';
 import { Send } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 const broadcastSchema = z.object({
   message: z.string().min(10, 'Broadcast message must be at least 10 characters long.'),
 });
 export function BroadcastPage() {
+  const { t } = useTranslation();
   const [broadcasts, setBroadcasts] = useState<Broadcast[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const form = useForm<z.infer<typeof broadcastSchema>>({
@@ -55,14 +57,14 @@ export function BroadcastPage() {
     <AppLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold font-display">Broadcast Message</h1>
-          <p className="text-muted-foreground">Send an announcement to all students.</p>
+          <h1 className="text-3xl font-bold font-display">{t('broadcast_title')}</h1>
+          <p className="text-muted-foreground">{t('broadcast_description')}</p>
         </div>
         <div className="grid gap-6 md:grid-cols-2">
           <Card>
             <CardHeader>
-              <CardTitle>New Broadcast</CardTitle>
-              <CardDescription>The message will be displayed on every student's dashboard.</CardDescription>
+              <CardTitle>{t('broadcast_new')}</CardTitle>
+              <CardDescription>{t('broadcast_newDescription')}</CardDescription>
             </CardHeader>
             <CardContent>
               <Form {...form}>
@@ -72,16 +74,16 @@ export function BroadcastPage() {
                     name="message"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Message</FormLabel>
+                        <FormLabel>{t('broadcast_messageLabel')}</FormLabel>
                         <FormControl>
-                          <Textarea placeholder="e.g., Mess will be closed tomorrow for maintenance." {...field} rows={5} />
+                          <Textarea placeholder={t('broadcast_messagePlaceholder')} {...field} rows={5} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
                   <Button type="submit" className="bg-orange-500 hover:bg-orange-600" disabled={form.formState.isSubmitting}>
-                    {form.formState.isSubmitting ? "Sending..." : <><Send className="mr-2 h-4 w-4" /> Send Broadcast</>}
+                    {form.formState.isSubmitting ? t('broadcast_sending') : <><Send className="mr-2 h-4 w-4" /> {t('broadcast_send')}</>}
                   </Button>
                 </form>
               </Form>
@@ -89,8 +91,8 @@ export function BroadcastPage() {
           </Card>
           <Card>
             <CardHeader>
-              <CardTitle>Broadcast History</CardTitle>
-              <CardDescription>A log of all past announcements.</CardDescription>
+              <CardTitle>{t('broadcast_history')}</CardTitle>
+              <CardDescription>{t('broadcast_historyDescription')}</CardDescription>
             </CardHeader>
             <CardContent>
               {isLoading ? <p>Loading history...</p> : broadcasts.length > 0 ? (
@@ -103,7 +105,7 @@ export function BroadcastPage() {
                   ))}
                 </div>
               ) : (
-                <p className="text-center text-muted-foreground py-8">No broadcasts sent yet.</p>
+                <p className="text-center text-muted-foreground py-8">{t('broadcast_noHistory')}</p>
               )}
             </CardContent>
           </Card>

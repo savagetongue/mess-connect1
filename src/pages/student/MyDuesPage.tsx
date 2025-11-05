@@ -5,17 +5,19 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
 import { api } from "@/lib/api-client";
-import type { MonthlyDue, CreateOrderResponse, User } from "@shared/types";
+import type { MonthlyDue, CreateOrderResponse } from "@shared/types";
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuthStore } from '@/store/auth';
+import { useTranslation } from 'react-i18next';
 declare global {
   interface Window {
     Razorpay: any;
   }
 }
 export function MyDuesPage() {
+  const { t } = useTranslation();
   const user = useAuthStore(s => s.user);
   const [dues, setDues] = useState<MonthlyDue[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -98,22 +100,22 @@ export function MyDuesPage() {
     <AppLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold font-display">My Dues</h1>
-          <p className="text-muted-foreground">View your monthly payment history and upcoming dues.</p>
+          <h1 className="text-3xl font-bold font-display">{t('myDues_title')}</h1>
+          <p className="text-muted-foreground">{t('myDues_description')}</p>
         </div>
         <Card>
           <CardHeader>
-            <CardTitle>Payment History</CardTitle>
-            <CardDescription>A record of all your monthly mess fees.</CardDescription>
+            <CardTitle>{t('myDues_cardTitle')}</CardTitle>
+            <CardDescription>{t('myDues_cardDescription')}</CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Month</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Action</TableHead>
+                  <TableHead>{t('myDues_month')}</TableHead>
+                  <TableHead>{t('myDues_amount')}</TableHead>
+                  <TableHead>{t('myDues_status')}</TableHead>
+                  <TableHead className="text-right">{t('myDues_action')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -133,13 +135,13 @@ export function MyDuesPage() {
                       <TableCell>₹{due.amount}</TableCell>
                       <TableCell>
                         <Badge variant={due.status === 'paid' ? 'default' : 'destructive'}>
-                          {due.status === 'paid' ? 'Paid' : 'Due'}
+                          {due.status === 'paid' ? t('myDues_paid') : t('myDues_due')}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
                         {due.status === 'due' && (
                           <Button size="sm" className="bg-orange-500 hover:bg-orange-600" onClick={() => handlePayNow(due)}>
-                            Pay Now
+                            {t('myDues_payNow')}
                           </Button>
                         )}
                       </TableCell>
@@ -148,7 +150,7 @@ export function MyDuesPage() {
                 ) : (
                   <TableRow>
                     <TableCell colSpan={4} className="text-center h-24">
-                      No dues found.
+                      {t('myDues_noDues')}
                     </TableCell>
                   </TableRow>
                 )}

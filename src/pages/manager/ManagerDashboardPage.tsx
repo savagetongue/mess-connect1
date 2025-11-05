@@ -6,7 +6,9 @@ import { api } from "@/lib/api-client";
 import type { MonthlyDue, GuestPayment } from "@shared/types";
 import { format, getMonth, getYear } from 'date-fns';
 import { IndianRupee, Users, AlertCircle } from "lucide-react";
+import { useTranslation } from "react-i18next";
 export function ManagerDashboardPage() {
+    const { t } = useTranslation();
     const user = useAuthStore(s => s.user);
     const [stats, setStats] = useState({ revenue: 0, pending: 0, totalStudents: 0 });
     const [isLoading, setIsLoading] = useState(true);
@@ -56,45 +58,45 @@ export function ManagerDashboardPage() {
         <AppLayout>
             <div className="space-y-6">
                 <div>
-                    <h1 className="text-3xl font-bold font-display">Manager Dashboard</h1>
-                    <p className="text-muted-foreground">Oversee and manage all mess operations from here.</p>
+                    <h1 className="text-3xl font-bold font-display">{t('managerDashboard_title')}</h1>
+                    <p className="text-muted-foreground">{t('managerDashboard_description')}</p>
                 </div>
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">This Month's Revenue</CardTitle>
+                            <CardTitle className="text-sm font-medium">{t('managerDashboard_revenue')}</CardTitle>
                             <IndianRupee className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold">₹{stats.revenue.toLocaleString('en-IN')}</div>
-                            <p className="text-xs text-muted-foreground">For {format(new Date(), 'MMMM yyyy')}</p>
+                            <p className="text-xs text-muted-foreground">{t('managerDashboard_revenueTime', { month: format(new Date(), 'MMMM yyyy') })}</p>
                         </CardContent>
                     </Card>
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Total Pending Dues</CardTitle>
+                            <CardTitle className="text-sm font-medium">{t('managerDashboard_pendingDues')}</CardTitle>
                             <AlertCircle className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold">₹{stats.pending.toLocaleString('en-IN')}</div>
-                            <p className="text-xs text-muted-foreground">Across all months</p>
+                            <p className="text-xs text-muted-foreground">{t('managerDashboard_pendingDuesScope')}</p>
                         </CardContent>
                     </Card>
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Active Students</CardTitle>
+                            <CardTitle className="text-sm font-medium">{t('managerDashboard_activeStudents')}</CardTitle>
                             <Users className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold">{stats.totalStudents}</div>
-                            <p className="text-xs text-muted-foreground">Total approved subscriptions</p>
+                            <p className="text-xs text-muted-foreground">{t('managerDashboard_activeStudentsDescription')}</p>
                         </CardContent>
                     </Card>
                 </div>
                 <Card>
                     <CardHeader>
-                        <CardTitle>Welcome, {user?.name || 'Manager'}!</CardTitle>
-                        <CardDescription>Use the sidebar to manage student applications, update the menu, and view financials.</CardDescription>
+                        <CardTitle>{t('managerDashboard_welcome', { name: user?.name || t('manager') })}</CardTitle>
+                        <CardDescription>{t('managerDashboard_welcomeDescription')}</CardDescription>
                     </CardHeader>
                 </Card>
             </div>

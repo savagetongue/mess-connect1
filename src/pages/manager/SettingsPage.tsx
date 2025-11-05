@@ -11,11 +11,13 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { toast } from "sonner";
 import { api } from "@/lib/api-client";
 import type { MessSettings } from "@shared/types";
+import { useTranslation } from 'react-i18next';
 const settingsSchema = z.object({
   monthlyFee: z.number().min(0, 'Fee must be a positive number.'),
   rules: z.string().optional(),
 });
 export function SettingsPage() {
+  const { t } = useTranslation();
   const form = useForm<z.infer<typeof settingsSchema>>({
     resolver: zodResolver(settingsSchema),
     defaultValues: { monthlyFee: 0, rules: '' },
@@ -48,13 +50,13 @@ export function SettingsPage() {
     <AppLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold font-display">Mess Settings</h1>
-          <p className="text-muted-foreground">Configure general settings for the mess.</p>
+          <h1 className="text-3xl font-bold font-display">{t('settings_title')}</h1>
+          <p className="text-muted-foreground">{t('settings_description')}</p>
         </div>
         <Card>
           <CardHeader>
-            <CardTitle>General Settings</CardTitle>
-            <CardDescription>Set the default monthly fee and mess rules for all students.</CardDescription>
+            <CardTitle>{t('settings_cardTitle')}</CardTitle>
+            <CardDescription>{t('settings_cardDescription')}</CardDescription>
           </CardHeader>
           <CardContent>
             <Form {...form}>
@@ -64,7 +66,7 @@ export function SettingsPage() {
                   name="monthlyFee"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Monthly Mess Fee (₹)</FormLabel>
+                      <FormLabel>{t('settings_feeLabel')}</FormLabel>
                       <FormControl>
                         <Input
                           type="number"
@@ -83,10 +85,10 @@ export function SettingsPage() {
                   name="rules"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Mess Rules</FormLabel>
+                      <FormLabel>{t('settings_rulesLabel')}</FormLabel>
                       <FormControl>
                         <Textarea
-                          placeholder="Enter mess rules here. Each rule on a new line."
+                          placeholder={t('settings_rulesPlaceholder')}
                           {...field}
                           rows={10}
                         />
@@ -96,7 +98,7 @@ export function SettingsPage() {
                   )}
                 />
                 <Button type="submit" className="bg-orange-500 hover:bg-orange-600" disabled={form.formState.isSubmitting}>
-                  {form.formState.isSubmitting ? "Saving..." : "Save Settings"}
+                  {form.formState.isSubmitting ? t('settings_saving') : t('settings_save')}
                 </Button>
               </form>
             </Form>

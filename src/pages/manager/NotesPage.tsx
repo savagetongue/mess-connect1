@@ -13,10 +13,12 @@ import { api } from "@/lib/api-client";
 import type { Note } from "@shared/types";
 import { Plus, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 const noteSchema = z.object({
   text: z.string().min(1, 'Note cannot be empty.'),
 });
 export function NotesPage() {
+  const { t } = useTranslation();
   const [notes, setNotes] = useState<Note[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const form = useForm<z.infer<typeof noteSchema>>({
@@ -73,13 +75,13 @@ export function NotesPage() {
     <AppLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold font-display">My Notes</h1>
-          <p className="text-muted-foreground">A private space for your to-do list and reminders.</p>
+          <h1 className="text-3xl font-bold font-display">{t('notes_title')}</h1>
+          <p className="text-muted-foreground">{t('notes_description')}</p>
         </div>
         <Card className="max-w-2xl mx-auto">
           <CardHeader>
-            <CardTitle>To-Do List</CardTitle>
-            <CardDescription>Add items to your personal checklist.</CardDescription>
+            <CardTitle>{t('notes_cardTitle')}</CardTitle>
+            <CardDescription>{t('notes_cardDescription')}</CardDescription>
           </CardHeader>
           <CardContent>
             <Form {...form}>
@@ -90,7 +92,7 @@ export function NotesPage() {
                   render={({ field }) => (
                     <FormItem className="flex-1">
                       <FormControl>
-                        <Input placeholder="e.g., Order vegetables for next week" {...field} />
+                        <Input placeholder={t('notes_placeholder')} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -124,7 +126,7 @@ export function NotesPage() {
                   </div>
                 ))
               ) : (
-                <p className="text-center text-muted-foreground py-8">Your to-do list is empty.</p>
+                <p className="text-center text-muted-foreground py-8">{t('notes_empty')}</p>
               )}
             </div>
           </CardContent>
