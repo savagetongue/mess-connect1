@@ -6,27 +6,23 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { toast } from "sonner";
 import { api } from "@/lib/api-client";
 import type { MessSettings } from "@shared/types";
-import { useTranslation } from '@/hooks/use-translation';
 const settingsSchema = z.object({
   monthlyFee: z.number().min(0, 'Fee must be a positive number.'),
-  rules: z.string().optional(),
 });
 export function SettingsPage() {
-  const { t } = useTranslation();
   const form = useForm<z.infer<typeof settingsSchema>>({
     resolver: zodResolver(settingsSchema),
-    defaultValues: { monthlyFee: 0, rules: '' },
+    defaultValues: { monthlyFee: 0 },
   });
   useEffect(() => {
     const fetchSettings = async () => {
       try {
         const settings = await api<MessSettings>('/api/settings');
-        form.reset({ monthlyFee: settings.monthlyFee, rules: settings.rules || '' });
+        form.reset({ monthlyFee: settings.monthlyFee });
       } catch (error) {
         console.warn("Could not fetch settings, using defaults.");
       }
@@ -50,47 +46,29 @@ export function SettingsPage() {
     <AppLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold font-display">{t('settings_title')}</h1>
-          <p className="text-muted-foreground">{t('settings_description')}</p>
+          <h1 className="text-3xl font-bold font-display">Mess Settings</h1>
+          <p className="text-muted-foreground">Configure general settings for the mess.</p>
         </div>
         <Card>
           <CardHeader>
-            <CardTitle>{t('settings_cardTitle')}</CardTitle>
-            <CardDescription>{t('settings_cardDescription')}</CardDescription>
+            <CardTitle>Financial Settings</CardTitle>
+            <CardDescription>Set the default monthly fee for all students.</CardDescription>
           </CardHeader>
           <CardContent>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 max-w-2xl">
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 max-w-sm">
                 <FormField
                   control={form.control}
                   name="monthlyFee"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('settings_feeLabel')}</FormLabel>
+                      <FormLabel>Monthly Mess Fee (₹)</FormLabel>
                       <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="e.g., 3000"
-                          {...field}
+                        <Input 
+                          type="number" 
+                          placeholder="e.g., 3000" 
+                          {...field} 
                           onChange={e => field.onChange(e.target.valueAsNumber)}
-                          className="max-w-sm"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="rules"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('settings_rulesLabel')}</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder={t('settings_rulesPlaceholder')}
-                          {...field}
-                          rows={10}
                         />
                       </FormControl>
                       <FormMessage />
@@ -98,7 +76,7 @@ export function SettingsPage() {
                   )}
                 />
                 <Button type="submit" className="bg-orange-500 hover:bg-orange-600" disabled={form.formState.isSubmitting}>
-                  {form.formState.isSubmitting ? t('settings_saving') : t('settings_save')}
+                  {form.formState.isSubmitting ? "Saving..." : "Save Settings"}
                 </Button>
               </form>
             </Form>
